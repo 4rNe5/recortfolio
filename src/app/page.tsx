@@ -258,11 +258,10 @@ export default function Home() {
           </g>
 
 
-          <foreignObject x="210" y="70" width="108" height="62">
+          <foreignObject x="235" y="66" width="60" height="32">
             <div className={styles.indicator}>
               <div className={styles.readout}>{timeLabel}</div>
               <div className={styles.meta}>
-                <span>TODAY</span>
                 <span>
                   {dayLabel} Q{quarter}
                 </span>
