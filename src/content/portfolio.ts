@@ -36,6 +36,15 @@ export const profile = {
   email: "me@4rne5.dev",
   github: "https://github.com/4rNe5",
   photo: "/assets/profile.jpg",
+  // 기존 4rne5.dev 사이트에 있던 채널
+  socials: [
+    { name: "GitHub", handle: "4rNe5", href: "https://github.com/4rNe5" },
+    { name: "LinkedIn", handle: "in/4rNe5", href: "https://www.linkedin.com/in/4rNe5" },
+    { name: "Instagram", handle: "@4_rne5", href: "https://www.instagram.com/4_rne5/" },
+    { name: "Telegram", handle: "@ar_oi_op", href: "https://t.me/ar_oi_op" },
+    { name: "Discord", handle: "프로필 열기", href: "https://www.discord.com/users/796907962811285506" },
+    { name: "Notion", handle: "이전 포트폴리오", href: "http://4rne5-portfolio.kro.kr" },
+  ],
   lede: "앱과 웹의 프론트엔드, 그리고 그 위에서 느껴지는 사용자 경험을 만듭니다.",
   principles: [
     { t: "본질부터", d: "무엇을, 누구를 위해 만드는지 먼저 정하고 코드를 씁니다." },

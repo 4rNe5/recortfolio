@@ -207,16 +207,22 @@ function Contact({ i }: { i: number }) {
       <a className={s.mail} href={`mailto:${profile.email}`}>
         {profile.email}
       </a>
-      <p className={s.contactLinks}>
-        <a href={profile.github} target="_blank" rel="noreferrer">
-          GitHub
-        </a>
+      <ul className={s.socials} aria-label="다른 채널">
+        {profile.socials.map((x) => (
+          <li key={x.name}>
+            <a href={x.href} target="_blank" rel="noreferrer">
+              <span className={s.socialName}>{x.name}</span>
+              <span className={s.socialHandle}>{x.handle}</span>
+              <span className={s.jack} aria-hidden />
+            </a>
+          </li>
+        ))}
+      </ul>
+      <footer className={s.footer}>
+        <span>© 2026 {profile.nameEn}</span>
         <a href="https://github.com/4rNe5/recortfolio" target="_blank" rel="noreferrer">
           이 사이트의 소스
         </a>
-      </p>
-      <footer className={s.footer}>
-        <span>© 2026 {profile.nameEn}</span>
         <span>휴대용 필드 레코더에서 영감을 받아 만들었습니다.</span>
       </footer>
     </section>
