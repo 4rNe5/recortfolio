@@ -53,10 +53,10 @@ export const profile = {
   ],
   credits: [
     { k: "역할", v: "앱·웹 프론트엔드, UI/UX 디자인" },
-    { k: "활동", v: "2023년 11월부터 프리랜서 앱·웹 개발자" },
-    { k: "주 악기", v: "TypeScript, React Native, Next.js, Swift, SwiftUI, Figma" },
-    { k: "세션", v: "Expo, EAS, Zustand, Socket.IO, STOMP, Rive, Tuist, Firebase" },
-    { k: "크루", v: "LabConf 운영진, 2,400명 규모 개발자 커뮤니티 Coding Lab (2024.11 – 2025.01)" },
+    { k: "활동", v: "(전) 프리랜서 앱·웹 개발자 (~ 2026.09) / (현) 대한민국 해군 SW개발병" },
+    { k: "Main Skills", v: "TypeScript, React Native, Next.js, Swift, SwiftUI, Figma" },
+    { k: "Sub Skills", v: "Expo, EAS, Zustand, Socket.IO, STOMP, Rive, Tuist, Firebase" },
+    { k: "History", v: "[마스터웨이] 프론트엔드 개발자 재직(25.09 ~ 25.12)" },
   ],
 };
 
