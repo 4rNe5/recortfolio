@@ -1,45 +1,139 @@
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ff5a1f;
+}
+@property --accent-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
+}
+
 :root {
-  --bg: #ffd7a2;
-  --line: #696969;
-  --shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
+  --bg: #e9e8e4;
+  --fg: #141414;
+  --muted: #6d6d69;
+  --card: #f4f3f0;
+  --line: rgb(0 0 0 / 0.1);
+  --line-strong: rgb(0 0 0 / 0.2);
+  --accent: #ff5a1f;
+  --accent-ink: #ffffff;
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  --font-mono: var(--font-space-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-oled: var(--font-vt323), var(--font-mono);
+  color-scheme: light;
+  transition: --accent 0.7s ease, --accent-ink 0.7s ease;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0e0e0e;
-    --line: #ffffff;
-    --shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+  :root:not([data-theme="light"]) {
+    --bg: #0f0f0f;
+    --fg: #ededeb;
+    --muted: #8f8f8a;
+    --card: #181818;
+    --line: rgb(255 255 255 / 0.1);
+    --line-strong: rgb(255 255 255 / 0.22);
+    color-scheme: dark;
+  }
+  :root:not([data-theme="light"]) [data-mono] {
+    --c: #ededeb !important;
+    --ci: #111111 !important;
   }
 }
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+:root[data-theme="dark"] {
+  --bg: #0f0f0f;
+  --fg: #ededeb;
+  --muted: #8f8f8a;
+  --card: #181818;
+  --line: rgb(255 255 255 / 0.1);
+  --line-strong: rgb(255 255 255 / 0.22);
+  color-scheme: dark;
 }
-
-body {
-  color: var(--line);
-  background: var(--bg);
-  font-family: var(--font-geist-sans), system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+:root[data-theme="dark"] [data-mono] {
+  --c: #ededeb !important;
+  --ci: #111111 !important;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
   margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background 0.4s, color 0.4s;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 a {
   color: inherit;
-  text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+img {
+  max-width: 100%;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.9em;
+  padding: 1px 6px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  font: inherit;
+  color: var(--fg);
+  text-align: center;
+  background: var(--card);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* 스크롤 등장 — JS가 있을 때만 숨겼다가 보여준다 */
+html[data-js] [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  filter: blur(4px);
+  transition:
+    opacity 0.8s cubic-bezier(0.2, 0.9, 0.3, 1),
+    transform 0.9s cubic-bezier(0.2, 0.9, 0.3, 1),
+    filter 0.8s;
+}
+html[data-js] [data-reveal][data-in] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-js] [data-reveal] {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
   }
 }

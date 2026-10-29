@@ -1,0 +1,143 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+.root[data-open] {
+  pointer-events: auto;
+}
+.scrim {
+  all: unset;
+  position: absolute;
+  inset: 0;
+  background: rgb(10 10 10 / 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.root[data-open] .scrim {
+  opacity: 1;
+}
+.panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(92vw, 440px);
+  max-height: 86vh;
+  overflow: auto;
+  background: #0b0b0b;
+  color: #f2f2f2;
+  border-radius: 18px;
+  padding: 22px 22px 16px;
+  box-shadow: 0 40px 80px -20px rgb(0 0 0 / 0.6), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  transform: translate(-50%, -46%) scale(0.96);
+  opacity: 0;
+  transition:
+    transform 0.5s cubic-bezier(0.2, 1.2, 0.3, 1),
+    opacity 0.3s;
+}
+.root[data-open] .panel {
+  transform: translate(-50%, -50%);
+  opacity: 1;
+}
+.head,
+.foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font: 400 12px/1 var(--font-oled);
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  color: #9a9a9a;
+}
+.head {
+  padding-bottom: 14px;
+  border-bottom: 1px dashed rgb(255 255 255 / 0.18);
+}
+.list {
+  list-style: none;
+  padding: 6px 0;
+  margin: 0;
+}
+.list li {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition:
+    opacity 0.4s,
+    transform 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+  transition-delay: calc(var(--i) * 25ms);
+}
+.root[data-open] .list li {
+  opacity: 1;
+  transform: none;
+}
+.list button {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 34px 12px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 8px;
+  border-radius: 8px;
+  font: 400 22px/1 var(--font-oled);
+  letter-spacing: 0.04em;
+  transition: background 0.2s;
+}
+.list button:hover,
+.list button:focus-visible {
+  background: rgb(255 255 255 / 0.08);
+  outline: none;
+}
+.list button[data-current] {
+  background: #f2f2f2;
+  color: #0b0b0b;
+}
+.no {
+  color: #8a8a8a;
+}
+.list button[data-current] .no {
+  color: #0b0b0b;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.25), 0 0 10px var(--c);
+}
+.name {
+  text-transform: uppercase;
+}
+.dur {
+  color: #8a8a8a;
+  font-variant-numeric: tabular-nums;
+}
+.foot {
+  padding-top: 12px;
+  border-top: 1px dashed rgb(255 255 255 / 0.18);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.foot kbd {
+  background: transparent;
+  color: #ddd;
+  border-color: #444;
+}
+.close {
+  all: unset;
+  cursor: pointer;
+  font: 400 18px/1 var(--font-oled);
+  letter-spacing: 0.1em;
+  color: #f2f2f2;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.close:hover,
+.close:focus-visible {
+  background: rgb(255 255 255 / 0.1);
+}

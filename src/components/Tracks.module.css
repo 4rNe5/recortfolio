@@ -1,0 +1,644 @@
+/* 라이너 노트 — 트랙(섹션)별 내용 */
+
+.track {
+  --p: 0;
+  position: relative;
+  padding: 72px 0 96px;
+  border-top: 1px solid var(--line);
+}
+.track:first-child {
+  border-top: 0;
+  padding-top: 40px;
+}
+
+/* ---------- 공통 헤더 ---------- */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font: 400 11px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.no b {
+  color: var(--fg);
+  font-weight: 700;
+}
+.rule {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.rule::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--c);
+  transform-origin: left;
+  transform: scaleX(var(--p));
+}
+.right {
+  white-space: nowrap;
+}
+
+/* ---------- 파형 ---------- */
+.wave {
+  position: relative;
+  height: 40px;
+  margin: 22px 0 34px;
+}
+.wave svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.waveBase path {
+  fill: var(--line-strong);
+}
+.waveFill {
+  clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+}
+.waveFill path {
+  fill: var(--c);
+}
+.playhead {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  left: calc(var(--p) * 100%);
+  width: 2px;
+  background: var(--fg);
+  opacity: calc(min(1, var(--p) * 40) * min(1, (1 - var(--p)) * 40));
+}
+
+/* ---------- 타이포 ---------- */
+.label {
+  font: 700 15px/1.4 var(--font-sans);
+  margin: 0 0 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.label span {
+  font: 400 11px/1 var(--font-mono);
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.mono {
+  font: 400 11px/1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.block {
+  margin-top: 48px;
+}
+
+/* ---------- 인트로 ---------- */
+.hero {
+  padding: 8vh 0 2vh;
+}
+.kicker {
+  font: 400 12px/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 18px;
+}
+.name {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(64px, 9vw, 148px);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  display: flex;
+  flex-direction: column;
+}
+.nameEn {
+  font-weight: 300;
+  font-size: 0.42em;
+  letter-spacing: -0.02em;
+  margin-top: 0.25em;
+  color: var(--accent);
+  transition: color 0.6s;
+}
+.lede {
+  margin: 34px 0 0;
+  font-size: clamp(16px, 1.35vw, 20px);
+  line-height: 1.65;
+  max-width: 34em;
+}
+.lede em {
+  font-style: normal;
+  background: linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 35%, transparent) 62%);
+}
+.howto {
+  list-style: none;
+  padding: 0;
+  margin: 28px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font: 400 12px/1.6 var(--font-mono);
+  color: var(--muted);
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) 1fr;
+  gap: 36px;
+  align-items: start;
+}
+.photo {
+  margin: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 10px 0;
+  transform: rotate(-2deg);
+  transition: transform 0.6s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.photo:hover {
+  transform: rotate(0deg) translateY(-4px);
+}
+.photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.photo figcaption {
+  display: flex;
+  justify-content: space-between;
+  font: 400 10px/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  padding: 12px 2px;
+  color: var(--muted);
+}
+.about p {
+  margin: 0 0 1.1em;
+  line-height: 1.8;
+  font-size: 15.5px;
+}
+.about strong,
+.story strong,
+.points strong {
+  font-weight: 700;
+  box-shadow: inset 0 -0.42em 0 color-mix(in srgb, var(--c) 22%, transparent);
+}
+
+.chips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chips li {
+  font: 500 13px/1 var(--font-sans);
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  transition: transform 0.25s cubic-bezier(0.2, 1.6, 0.4, 1), background 0.25s, color 0.25s;
+}
+.chips li:hover {
+  transform: translateY(-2px);
+  background: var(--c);
+  color: var(--ci);
+  border-color: transparent;
+}
+.chips .chipStrong {
+  font-weight: 700;
+}
+
+.jobs,
+.positions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.job {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  grid-template-rows: auto auto;
+  gap: 6px 22px;
+  padding: 18px 20px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.jobMeta {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.job h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.badge,
+.badgeAccent {
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.04em;
+  padding: 5px 9px;
+  border-radius: 99px;
+  background: var(--fg);
+  color: var(--bg);
+}
+.badgeAccent {
+  background: var(--c);
+  color: var(--ci);
+}
+.points {
+  margin: 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.points li::marker {
+  color: var(--c);
+}
+
+/* ---------- 프로젝트 ---------- */
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.icon {
+  flex: none;
+  width: 84px;
+  height: 84px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 30px -12px color-mix(in srgb, var(--c) 70%, transparent);
+  transition: transform 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.titleRow:hover .icon {
+  transform: rotate(-6deg) scale(1.05);
+}
+.icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.icon[data-logo] img {
+  width: 82%;
+  height: auto;
+  object-fit: contain;
+}
+.title {
+  margin: 0;
+  font-size: clamp(40px, 5.4vw, 84px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: var(--c);
+  transition: color 0.3s;
+}
+.titleEn {
+  font: 400 0.32em/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  vertical-align: middle;
+  margin-left: 0.3em;
+}
+.summary {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.meta {
+  margin: 32px 0 0;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.2fr;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.meta > div {
+  padding: 14px 16px 16px 0;
+}
+.meta > div + div {
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+}
+.meta dt {
+  font: 400 10px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.meta dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.links a,
+.stageLink,
+.contactLinks a {
+  color: inherit;
+  text-decoration: none;
+  background: linear-gradient(var(--c), var(--c)) 0 100% / 0 2px no-repeat;
+  transition: background-size 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.links a:hover,
+.stageLink:hover,
+.contactLinks a:hover {
+  background-size: 100% 2px;
+}
+.notice {
+  margin: 12px 0 0;
+  font: 400 12px/1.5 var(--font-mono);
+  color: var(--muted);
+}
+
+.mockup {
+  margin: 40px 0 0;
+  border-radius: 20px;
+  background: var(--c);
+  padding: clamp(16px, 4vw, 48px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.mockup img {
+  width: min(100%, 520px);
+  height: auto;
+  transform: translateY(calc((0.5 - var(--p)) * 40px));
+}
+.screens {
+  margin: 40px 0 0;
+  border-radius: 20px;
+  background: var(--c);
+  padding: clamp(18px, 3vw, 36px);
+  display: flex;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 22px);
+  overflow: hidden;
+}
+.screens img {
+  width: calc((100% - 44px) / 3);
+  max-width: 200px;
+  height: auto;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px -16px rgb(0 0 0 / 0.5);
+  transform: translateY(calc((0.5 - var(--p)) * (20px + var(--k) * 26px)));
+}
+
+.story {
+  margin-top: 48px;
+}
+.story p {
+  margin: 0 0 1em;
+  font-size: 15.5px;
+  line-height: 1.85;
+  max-width: 42em;
+}
+
+.position {
+  padding: 18px 20px 20px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.posHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.position h4 {
+  margin: 8px 0 10px;
+  font-size: 16px;
+}
+
+/* ---------- 수상 ---------- */
+.awardList {
+  list-style: none;
+  margin: 36px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.award {
+  display: grid;
+  grid-template-columns: 28px 64px 1fr auto;
+  gap: 16px;
+  align-items: baseline;
+  padding: 18px 4px;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.3s, padding 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.award:hover {
+  background: var(--card);
+  padding-left: 12px;
+}
+.awardNo {
+  font: 700 12px/1 var(--font-mono);
+  color: var(--muted);
+}
+.awardBody h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.awardBody p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.prize {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+.award[data-top] .prize {
+  color: var(--c);
+}
+.award[data-top] .awardNo {
+  color: var(--c);
+}
+
+/* ---------- 무대 ---------- */
+.stageList {
+  list-style: none;
+  margin: 36px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.stageItem {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.stageItem[data-has-photo] {
+  grid-column: span 2;
+  flex-direction: row;
+}
+.stagePhotos {
+  flex: 1.2;
+  display: grid;
+  grid-auto-flow: column;
+  gap: 2px;
+  background: var(--line);
+}
+.stagePhotos img {
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.stageItem:hover .stagePhotos img {
+  transform: scale(1.04);
+}
+.stagePhotos {
+  overflow: hidden;
+}
+.stageText {
+  flex: 1;
+  padding: 18px 20px 20px;
+}
+.stageText h3 {
+  margin: 6px 0 8px;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.stageText p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.stageText .mono {
+  font-size: 11px;
+}
+.stageLink {
+  display: inline-block;
+  margin-top: 12px;
+  font: 500 12px/1.6 var(--font-mono);
+}
+
+/* ---------- 연락 ---------- */
+.contact {
+  min-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+.mail {
+  font-size: clamp(36px, 6.4vw, 104px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--fg);
+  text-decoration: none;
+  word-break: break-all;
+  background: linear-gradient(var(--c), var(--c)) 0 92% / 0 0.12em no-repeat;
+  transition: background-size 0.6s cubic-bezier(0.2, 0.9, 0.3, 1), color 0.3s;
+  align-self: flex-start;
+}
+.mail:hover {
+  background-size: 100% 0.12em;
+}
+.contactLinks {
+  list-style: none;
+  padding: 0;
+  margin: 34px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.footer {
+  margin-top: auto;
+  padding-top: 80px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  font: 400 11px/1.4 var(--font-mono);
+  color: var(--muted);
+}
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 720px) {
+  .track {
+    padding: 56px 0 72px;
+  }
+  .profileGrid {
+    grid-template-columns: 1fr;
+  }
+  .photo {
+    max-width: 220px;
+  }
+  .job {
+    grid-template-columns: 1fr;
+  }
+  .meta {
+    grid-template-columns: 1fr;
+  }
+  .meta > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-left: 0;
+  }
+  .icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+  }
+  .award {
+    grid-template-columns: 22px 1fr;
+  }
+  .award .mono {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .awardBody,
+  .prize {
+    grid-column: 2;
+    text-align: left;
+  }
+  .stageList {
+    grid-template-columns: 1fr;
+  }
+  .stageItem[data-has-photo] {
+    grid-column: auto;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mockup img,
+  .screens img {
+    transform: none;
+  }
+}

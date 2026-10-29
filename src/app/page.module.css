@@ -1,146 +1,47 @@
-.canvas {
+.shell {
+  display: grid;
+  grid-template-columns: minmax(360px, 40vw) minmax(0, 1fr);
   min-height: 100vh;
+}
+
+.deck {
+  position: relative;
+}
+.deckInner {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
-  background: var(--bg);
-  color: var(--line);
+  padding: 28px clamp(24px, 3.5vw, 64px);
+}
+.deckInner > * {
+  /* 화면 높이에 맞춰 기기 크기를 정한다 (기기 853:1370 + 힌트 영역) */
+  width: min(100%, 470px, calc((100svh - 140px) * 0.6226));
 }
 
-.deviceWrap {
-  position: relative;
-  width: min(92vw, 540px);
-  aspect-ratio: 3 / 4;
+.notes {
+  padding: 0 clamp(24px, 5vw, 96px) 0 clamp(12px, 2vw, 32px);
+  max-width: 1040px;
 }
 
-.deviceSvg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  filter: drop-shadow(var(--shadow));
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.stroke {
-  stroke: var(--line);
-  stroke-width: 2;
-  fill: none;
-}
-
-.body {
-  stroke: var(--line);
-  stroke-width: 2.4;
-  fill: none;
-}
-
-.wheel {
-  transform: rotate(var(--angle, 0deg));
-  transform-origin: center;
-  transform-box: fill-box;
-  transition: filter 0.3s ease;
-  cursor: grab;
-}
-
-.wheel:active {
-  cursor: grabbing;
-}
-
-.wheelHover {
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.14));
-}
-
-.sliderTrack {
-  stroke-width: 4;
-  cursor: ns-resize;
-}
-
-.sliderHandle {
-  stroke-width: 2.4;
-  fill: none;
-  cursor: ns-resize;
-  transition: transform 0.12s ease;
-}
-
-.sideButtons circle {
-  stroke-width: 2;
-}
-
-.plusMinus {
-  stroke-width: 2;
-}
-
-.fader {
-  stroke-width: 2;
-}
-
-.button {
-  cursor: pointer;
-  transition: transform 120ms ease, stroke-width 120ms ease;
-}
-
-.button rect,
-.button circle,
-.button path {
-  pointer-events: none;
-}
-
-.pressed {
-  transform: translateY(2px);
-}
-
-.knob {
-  transform: rotate(var(--angle, 0deg));
-  transform-origin: 26px 24px;
-  transform-box: fill-box;
-}
-
-.label {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-size: 14px;
-  letter-spacing: 1px;
-  fill: var(--line);
-}
-
-.smallText {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-size: 10px;
-  fill: var(--line);
-  letter-spacing: 0.8px;
-}
-
-.indicator {
-  width: 100%;
-  height: 100%;
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-  padding: 3px 4px 2px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background: none;
-  color: var(--line);
-}
-
-.readout {
-  font-family: var(--font-geist-mono), var(--font-geist-sans), monospace;
-  font-size: 9.5px;
-  letter-spacing: 0.4px;
-}
-
-.meta {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-size: 6.8px;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-}
-
-@media (max-width: 640px) {
-  .canvas {
-    padding: 32px 16px;
+@media (max-width: 1099px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .deckInner {
+    position: relative;
+    height: auto;
+    min-height: 0;
+    padding: 40px 20px 8px;
+  }
+  .deckInner > * {
+    width: min(78vw, 400px);
+  }
+  .notes {
+    padding: 0 20px 120px;
+    max-width: none;
   }
 }
