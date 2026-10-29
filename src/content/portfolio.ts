@@ -185,7 +185,7 @@ export const tracks: Track[] = [
     icon: "/assets/lightlib-icon.png",
     period: "2026.10 – 진행 중",
     role: "1인 개발 — Android, Flutter",
-    tagline: "일본 라이트노벨 원서를 휴대폰 안에서 번역하며 읽는 전자책 리더",
+    tagline: "일본어 서적 중심의 로컬 번역 내장 전자책 리더",
     facts: [
       { v: "On-device", l: "Gemma 4를 휴대폰에서 직접 실행하는 번역" },
       { v: "43MB", l: "모델을 분리해 141MB에서 줄인 APK" },
@@ -194,8 +194,9 @@ export const tracks: Track[] = [
     did: [
       "foliate-js 기반 리더로 세로쓰기와 후리가나까지 책의 조판을 그대로 보여 줍니다.",
       "GPU(LiteRT-LM)가 안 되면 CPU(llama.cpp)로 넘어가며, 여러 문단을 한 번에 번역하고 틀린 번역은 검사해 다시 씁니다.",
-      "책마다 인물·용어 사전을 만들어 표기를 통일하고, 발열을 보며 쉬어 가는 백그라운드 번역을 만들었습니다.",
-      "Gemini 엔진을 함께 두고, 앱이 새 빌드를 받아 SHA-256을 확인한 뒤 스스로 업데이트합니다.",
+      "책마다 인물·용어 사전을 만들어 표기를 통일하고, One-Shot Example 등으로 일본 서적 특유의 문체를 살리는 번역기능을 만들었습니다.",
+      "보다 나은 사용성을 위해 Gemini 엔진을 함께 두고, 앱이 새 빌드를 받아 SHA-256을 확인한 뒤 스스로 업데이트합니다.",
+      "바이브 코딩과 CI / CD 환경을 구축해 컴퓨터 없이 사용중에 보이는 개선점 수정과 새로운 기능 반영을 매우 빠르게 할 수 있었습니다."
     ],
     stack: ["Flutter", "Dart", "foliate-js", "LiteRT-LM", "llama.cpp", "Gemini API", "GitHub Actions"],
     links: [
@@ -222,7 +223,7 @@ export const tracks: Track[] = [
     period: "2024.10",
     role: "1인 개발 — watchOS, 디자인",
     tagline: "손목 위에서 하는 지뢰찾기",
-    facts: [{ v: "2,000+", l: "유저" }],
+    facts: [{ v: "9,000+", l: "유저" }],
     did: [
       "Digital Crown으로 화면을 전환하고, 햅틱으로 손끝에 결과를 알려 줍니다.",
       "첫 칸은 항상 안전하고, 빈 칸은 자동으로 펼쳐집니다.",
