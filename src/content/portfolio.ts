@@ -42,8 +42,8 @@ export const profile = {
     { name: "LinkedIn", handle: "in/4rNe5", href: "https://www.linkedin.com/in/4rNe5" },
     { name: "Instagram", handle: "@4_rne5", href: "https://www.instagram.com/4_rne5/" },
     { name: "Telegram", handle: "@ar_oi_op", href: "https://t.me/ar_oi_op" },
-    { name: "Discord", handle: "프로필 열기", href: "https://www.discord.com/users/796907962811285506" },
-    { name: "Notion", handle: "이전 포트폴리오", href: "http://4rne5-portfolio.kro.kr" },
+    { name: "Discord", handle: "@4_rne5", href: "https://www.discord.com/users/796907962811285506" },
+    { name: "Notion", handle: "구) 포트폴리오", href: "http://4rne5-portfolio.kro.kr" },
   ],
   lede: "앱과 웹의 프론트엔드, 그리고 그 위에서 느껴지는 사용자 경험을 만듭니다.",
   principles: [
@@ -52,8 +52,8 @@ export const profile = {
     { t: "포지션을 넘나들며", d: "디자인과 PM을 직접 맡아 봐서, 다른 직군과 같은 언어로 일합니다." },
   ],
   credits: [
-    { k: "역할", v: "앱·웹 프론트엔드, UI/UX 디자인" },
-    { k: "활동", v: "(전) 프리랜서 앱·웹 개발자 (~ 2026.09) / (현) 대한민국 해군 SW개발병" },
+    { k: "Role", v: "앱·웹 프론트엔드, UI/UX 디자인" },
+    { k: "Status", v: "(전) 프리랜서 앱·웹 개발자 (~ 2026.09) / (현) 대한민국 해군 SW개발병" },
     { k: "Main Skills", v: "TypeScript, React Native, Next.js, Swift, SwiftUI, Figma" },
     { k: "Sub Skills", v: "Expo, EAS, Zustand, Socket.IO, STOMP, Rive, Tuist, Firebase" },
     { k: "History", v: "[마스터웨이] 프론트엔드 개발자 재직(25.09 ~ 25.12)" },
@@ -75,12 +75,12 @@ export const tracks: Track[] = [
     tagline: "말하는 내용과 구조를 실시간으로 분석해 주는 AI 취업 면접 코치",
     facts: [
       { v: "2", l: "온디바이스와 Clova를 함께 쓰는 음성 인식 엔진" },
-      { v: "QA", l: "출시 전 베타 테스트와 사내 피드백 흐름 리드" },
+      { v: "60+ QA", l: "출시 전 베타 테스트와 사내 피드백 흐름 리드" },
     ],
     did: [
-      "Expo 대신 순정 React Native로 만들어, 필요한 네이티브 라이브러리를 직접 고쳐 쓸 수 있게 했습니다.",
+      "Expo 대신 순정 React Native로 만들어, 필요한 네이티브 라이브러리 사용을 유연하게 변경 가능하도록 했습니다.",
       "녹음 라이브러리 내부의 버그를 찾아 패치하고, 온디바이스 STT와 Clova STT를 연결했습니다.",
-      "Lottie 모션, 사용법 투어, 앱 안에서 바로 여는 ChannelTalk 문의를 넣었습니다.",
+      "Lottie 모션, 사용법 투어, 앱 안에서 바로 여는 ChannelTalk 문의 등 다양한 실제 비즈니스 솔루션을 작업 해 보았습니다.",
       "질문 토픽별 훈련 진행도를 SVG 길로 그려, 지나온 구간의 색이 바뀌게 했습니다.",
     ],
     stack: ["React Native", "TypeScript", "Lottie", "STT", "React Navigation", "i18n", "Notifee"],
@@ -104,10 +104,11 @@ export const tracks: Track[] = [
     icon: "/assets/ttak-icon.png",
     period: "2024.08 – 2024.09",
     role: "1인 개발 — 기획, 디자인, 프론트, 백엔드",
-    tagline: "리듬게이머 사이의 유행이 식기 전에 출시한 반응속도 측정·랭킹 앱",
+    tagline: "게이머들 사이의 반짝 유행이 식기 전에 출시한 반응속도 측정·랭킹 앱",
     facts: [
       { v: "60ms", l: "기기별 입력 지연 보정으로 개선한 측정 정확도" },
-      { v: "1인", l: "기획부터 앱스토어 출시까지" },
+      { v: "1인", l: "기획, 디자인, 개발 전부 한번에" },
+      { v: "4시간", l: "기획부터 앱스토어 출시까지" }
     ],
     did: [
       "기기마다 다른 입력 지연을 보정하는 타이밍 로직을 만들었습니다.",
@@ -140,7 +141,7 @@ export const tracks: Track[] = [
     ],
     did: [
       "위치 권한 요청 횟수를 제어하고, GPS 시간 초과와 오류에 단계적으로 대응하게 했습니다.",
-      "주소 등록 흐름을 단계별로 다시 설계해 배달 위치를 정확하게 받습니다.",
+      "외국인들의 잦은 주소오류 해결을 위해 주소 등록 흐름을 단계별, 맟춤으로 다시 설계해 배달 위치를 정확하게 받습니다.",
       "업로드 전에 이미지의 형식과 크기를 검사하고, 새로고침해도 상태가 남도록 했습니다.",
       "로고부터 배너까지 맡아, 베트남 사용자에 맞춘 언어와 음식 사진이 돋보이는 절제된 UI로 만들었습니다.",
     ],
@@ -166,9 +167,10 @@ export const tracks: Track[] = [
       { v: "1등", l: "2024 DGSW 나르샤 프로젝트 최종 평가회" },
     ],
     did: [
-      "팀원을 직접 비교해 모으고, 브레인스토밍으로 서비스를 기획했습니다.",
-      "생성 대기열과 진행 상황을 보여 줘, 기다리는 시간도 경험의 일부로 만들었습니다.",
-      "피드백을 받아 채팅형 UI를 질의응답형으로 다시 만들어 결과물과 UX를 함께 끌어올렸습니다.",
+      "팀원을 직접 스카웃해가며 모으고, 브레인스토밍과 아이디어 쌓기를 주도하며 팀원과 함깨 서비스를 기획했습니다.",
+      "생성 대기열과 진행 상황을 실시간으로 보여주어, 기다리는 시간도 경험의 일부로 만들었습니다.",
+      "FLUX.1 모델을 구동하기 위해 교내에 On-premise AI 서버를 구축하고, WebUI를 이용해 Quality 개선 작업을 진행하였습니다",
+      "피드백을 받아 채팅형 UI를 질의응답형으로 다시 만들어 결과물 퀄리티와 UX를 함께 끌어올렸습니다.",
       "앱 디자인과 컬러 시스템, 애니메이션·햅틱 흐름을 설계했습니다.",
     ],
     stack: ["Swift", "SwiftUI", "Rive", "Socket.IO", "Alamofire", "Tuist"],
