@@ -75,18 +75,19 @@
   align-items: center;
 }
 .time {
-  font: 400 20px/1 var(--font-oled);
+  font: 500 19px/1 var(--font-oled);
+  font-variant-numeric: tabular-nums;
 }
 .no {
-  font: 400 14px/1 var(--font-oled);
+  font: 600 12px/1 var(--font-oled);
   background: #f2f2f2;
   color: #050505;
   border-radius: 3px;
   padding: 0 4px;
 }
 .title {
-  font: 400 15px/1 var(--font-oled);
-  letter-spacing: 0.06em;
+  font: 600 13px/1 var(--font-oled);
+  letter-spacing: 0;
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;

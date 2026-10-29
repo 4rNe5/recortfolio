@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Mono, VT323 } from "next/font/google";
+import { Funnel_Display } from "next/font/google";
 import "./globals.css";
 
-const spaceMono = Space_Mono({ variable: "--font-space-mono", weight: ["400", "700"], subsets: ["latin"] });
-const vt323 = VT323({ variable: "--font-vt323", weight: "400", subsets: ["latin"] });
+const display = Funnel_Display({ variable: "--font-funnel", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "박준현 — Front-End Developer Portfolio",
@@ -30,7 +29,7 @@ const boot = `try{var d=document.documentElement;d.setAttribute('data-js','');va
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ko" className={`${spaceMono.variable} ${vt323.variable}`} suppressHydrationWarning>
+    <html lang="ko" className={display.variable} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="" />
         <link

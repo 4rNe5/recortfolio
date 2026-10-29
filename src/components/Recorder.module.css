@@ -117,8 +117,8 @@
   justify-content: space-between;
 }
 .oledTime {
-  font: 400 calc(var(--u) * 50) / 0.8 var(--font-oled);
-  letter-spacing: calc(var(--u) * 0.5);
+  font: 500 calc(var(--u) * 46) / 0.85 var(--font-oled);
+  letter-spacing: calc(var(--u) * -1);
   font-variant-numeric: tabular-nums;
 }
 .oledState {
@@ -150,8 +150,8 @@
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  font: 400 calc(var(--u) * 28) / 1 var(--font-oled);
-  letter-spacing: calc(var(--u) * 1.5);
+  font: 600 calc(var(--u) * 19) / 1 var(--font-oled);
+  letter-spacing: calc(var(--u) * 1);
   text-transform: uppercase;
 }
 .oledLine > span {
@@ -176,7 +176,7 @@
 }
 .oledNo {
   flex: none;
-  font: 400 calc(var(--u) * 26) / 0.9 var(--font-oled);
+  font: 600 calc(var(--u) * 19) / 1 var(--font-oled);
   padding: calc(var(--u) * 2) calc(var(--u) * 5) 0;
   border-radius: calc(var(--u) * 4);
   background: #f4f4f4;
@@ -746,8 +746,8 @@
   margin-top: 18px;
   min-height: 2.6em;
   text-align: center;
-  font: 400 11px/1.4 var(--font-mono);
-  letter-spacing: 0.06em;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--muted);
 }
 .hint span {

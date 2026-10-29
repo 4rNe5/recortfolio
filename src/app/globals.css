@@ -10,17 +10,18 @@
 }
 
 :root {
-  --bg: #e9e8e4;
+  --bg: #e5e5e2;
   --fg: #141414;
-  --muted: #6d6d69;
-  --card: #f4f3f0;
-  --line: rgb(0 0 0 / 0.1);
+  --muted: #64645f;
+  --card: #efefec;
+  --line: rgb(0 0 0 / 0.12);
   --line-strong: rgb(0 0 0 / 0.2);
   --accent: #ff5a1f;
   --accent-ink: #ffffff;
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
-  --font-mono: var(--font-space-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --font-oled: var(--font-vt323), var(--font-mono);
+  --font-display: var(--font-funnel), var(--font-sans);
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-oled: var(--font-display);
   color-scheme: light;
   transition: --accent 0.7s ease, --accent-ink 0.7s ease;
 }
@@ -111,29 +112,4 @@ kbd {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
-}
-
-/* 스크롤 등장 — JS가 있을 때만 숨겼다가 보여준다 */
-html[data-js] [data-reveal] {
-  opacity: 0;
-  transform: translateY(18px);
-  filter: blur(4px);
-  transition:
-    opacity 0.8s cubic-bezier(0.2, 0.9, 0.3, 1),
-    transform 0.9s cubic-bezier(0.2, 0.9, 0.3, 1),
-    filter 0.8s;
-}
-html[data-js] [data-reveal][data-in] {
-  opacity: 1;
-  transform: none;
-  filter: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html[data-js] [data-reveal] {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transition: none;
-  }
 }

@@ -7,19 +7,19 @@ import { formatTime, useFrame, useTape } from "@/lib/useTape";
 import s from "./Recorder.module.css";
 
 const HINTS: Record<string, string> = {
-  wheel: "JOG WHEEL — 돌려서 테이프를 감으세요",
-  hub: "HUB — 탭해서 재생 / 일시정지",
-  lever: "LEVER — 위로 빨리감기 · 아래로 되감기 · 짧게 튕기면 트랙 이동",
-  rec: "REC — 연락처로 이동, 한 번 더 누르면 메일 작성",
-  play: "PLAY — 포트폴리오를 재생합니다",
-  stop: "STOP — 정지, 한 번 더 누르면 처음으로",
-  fader: "FADER — 테이프 전체를 스크럽",
-  plus: "+ — 재생 속도 올리기",
-  minus: "− — 재생 속도 내리기",
-  knob: "VOLUME — 드래그해서 볼륨 조절",
-  sound: "SOUND — 소리 켜기 / 끄기",
-  menu: "M — 트랙리스트",
-  theme: "SIDE KEY — 테마 전환",
+  wheel: "조그 휠을 돌려서 앞뒤로 감아 보세요",
+  hub: "가운데를 누르면 재생하거나 멈춥니다",
+  lever: "레버를 튕기면 트랙을 넘기고, 누르고 있으면 빨리 감습니다",
+  rec: "연락처로 이동합니다. 한 번 더 누르면 메일을 씁니다",
+  play: "포트폴리오를 처음부터 재생합니다",
+  stop: "멈춥니다. 한 번 더 누르면 처음으로 돌아갑니다",
+  fader: "페이더를 끌어서 전체를 훑어보세요",
+  plus: "재생 속도를 올립니다",
+  minus: "재생 속도를 내립니다",
+  knob: "노브를 끌어서 볼륨을 조절합니다",
+  sound: "소리를 켜거나 끕니다",
+  menu: "트랙리스트를 엽니다",
+  theme: "밝은 테마와 어두운 테마를 바꿉니다",
 };
 
 const norm = (d: number) => ((((d + 180) % 360) + 360) % 360) - 180;
@@ -419,8 +419,8 @@ export default function Recorder() {
           <span key={hint}>{hint}</span>
         ) : (
           <span key="idle">
-            <span className={s.hintKb}>{snap.ready ? "DRAG THE WHEEL · PRESS ▶ · SPACE / ← → / M / R" : "LOADING TAPE…"}</span>
-            <span className={s.hintTouch}>{snap.ready ? "휠을 돌리거나 ▶ 를 눌러 재생하세요" : "LOADING TAPE…"}</span>
+            <span className={s.hintKb}>{snap.ready ? "휠을 돌리거나 ▶를 눌러 보세요. 키보드는 Space, ←, →, M, R" : "테이프를 감는 중"}</span>
+            <span className={s.hintTouch}>{snap.ready ? "휠을 돌리거나 ▶를 눌러 보세요" : "테이프를 감는 중"}</span>
           </span>
         )}
       </figcaption>

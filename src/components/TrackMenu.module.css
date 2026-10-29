@@ -47,9 +47,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font: 400 12px/1 var(--font-oled);
-  font-size: 18px;
-  letter-spacing: 0.08em;
+  font: 600 14px/1 var(--font-oled);
+  letter-spacing: 0;
   color: #9a9a9a;
 }
 .head {
@@ -84,8 +83,8 @@
   gap: 12px;
   padding: 11px 8px;
   border-radius: 8px;
-  font: 400 22px/1 var(--font-oled);
-  letter-spacing: 0.04em;
+  font: 600 17px/1 var(--font-oled);
+  letter-spacing: 0;
   transition: background 0.2s;
 }
 .list button:hover,
@@ -131,8 +130,8 @@
 .close {
   all: unset;
   cursor: pointer;
-  font: 400 18px/1 var(--font-oled);
-  letter-spacing: 0.1em;
+  font: 600 14px/1 var(--font-oled);
+  letter-spacing: 0;
   color: #f2f2f2;
   padding: 6px 10px;
   border-radius: 6px;
