@@ -190,7 +190,7 @@ export const tracks: Track[] = [
     tagline: "일본어 서적 중심의 로컬 번역 내장 전자책 리더",
     facts: [
       { v: "On-device", l: "Gemma 4를 휴대폰에서 직접 실행하는 번역" },
-      { v: "43MB", l: "모델을 분리해 141MB에서 줄인 APK" },
+      { v: "43MB", l: "최적화를 통해 100MB 가량 줄어든 APK" },
       { v: "540+", l: "빌드마다 CI에서 돌리는 테스트" },
     ],
     did: [
