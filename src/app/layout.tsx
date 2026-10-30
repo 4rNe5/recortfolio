@@ -4,7 +4,13 @@ import "./globals.css";
 
 const display = Funnel_Display({ variable: "--font-funnel", subsets: ["latin"] });
 
+// 미리보기 이미지가 절대 주소로 나가도록. Vercel에선 production 도메인(커스텀 도메인 포함)을 자동으로 따른다.
+const site = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(site),
   title: "박준현 — Front-End Developer Portfolio",
   description:
     "서비스의 본질에 집중하는 프론트엔드 개발자 박준현(4rNe5)의 포트폴리오. jobanswer, 탁!, SFOODGO, Palette, LightLib 등 대표 프로젝트를 녹음기처럼 재생해 보세요.",
@@ -14,6 +20,13 @@ export const metadata: Metadata = {
     description: "녹음기처럼 재생하는 포트폴리오 — App · Web Front-End · UI/UX",
     type: "website",
     locale: "ko_KR",
+    siteName: "Park Jun Hyeon",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "박준현 — Front-End Developer",
+    description: "녹음기처럼 재생하는 포트폴리오 — App · Web Front-End · UI/UX",
   },
 };
 
@@ -31,7 +44,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ko" className={display.variable} suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/svg+xml" href="https://upload.wikimedia.org/wikipedia/commons/8/84/Apple_Computer_Logo_rainbow.svg" />
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="" />
         <link
           rel="stylesheet"

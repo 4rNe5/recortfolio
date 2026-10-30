@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="alu" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1f1ef"/>
+      <stop offset="1" stop-color="#cdcdcb"/>
+    </linearGradient>
+    <linearGradient id="disk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2e2e0"/>
+      <stop offset="1" stop-color="#cfcfcd"/>
+    </linearGradient>
+    <linearGradient id="hub" x1="0.15" y1="0.1" x2="0.85" y2="0.9">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.46" stop-color="#d4d4d2"/>
+      <stop offset="0.5" stop-color="#8d8d8b"/>
+      <stop offset="1" stop-color="#b4b4b2"/>
+    </linearGradient>
+  </defs>
+  <rect x="1.5" y="1.5" width="61.0" height="61.0" rx="15" fill="url(#alu)"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="15" fill="none" stroke="#000" stroke-opacity=".16" stroke-width="1"/>
+  <circle cx="31" cy="34" r="20.5" fill="url(#disk)" stroke="#727270" stroke-width="2.2"/>
+  <path d="M16.6 48.4 L25.4 39.6 M36.6 28.4 L45.4 19.6" stroke="#262626" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="31" cy="34" r="7.6" fill="url(#hub)" stroke="#000" stroke-opacity=".28" stroke-width="1"/>
+  <circle cx="51" cy="12" r="4.6" fill="#ff5a1f"/>
+</svg>
