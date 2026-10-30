@@ -1,4 +1,5 @@
 import Boot from "@/components/Boot";
+import Lyrics from "@/components/Lyrics";
 import MiniDeck from "@/components/MiniDeck";
 import Recorder from "@/components/Recorder";
 import TrackMenu from "@/components/TrackMenu";
@@ -9,6 +10,7 @@ export default function Home() {
   return (
     <>
       <Boot />
+      <Lyrics />
       <div className={styles.shell}>
         <aside className={styles.deck} id="deck">
           <div className={styles.deckInner}>

@@ -30,6 +30,21 @@ function Bar({ i, right, title }: { i: number; right?: string; title: string }) 
   );
 }
 
+/** 가사 한 줄: 단어마다 줄 안에서의 위치(--wi, 0~1)를 준다. 재생 위치(--lp)가 지나가며 차례로 켜진다. */
+function LyricLine({ text }: { text: string }) {
+  const words = text.split(" ");
+  return (
+    <li data-lyric data-state="next">
+      {words.map((w, k) => (
+        <span key={k} className={s.word} style={{ ["--wi" as string]: (k / words.length).toFixed(3) } as CSSProperties}>
+          {w}
+          {k < words.length - 1 ? " " : ""}
+        </span>
+      ))}
+    </li>
+  );
+}
+
 function Intro({ i }: { i: number }) {
   const t = tracks[i];
   return (
@@ -115,7 +130,7 @@ function Project({ t, i }: { t: ProjectTrack; i: number }) {
       <div className={s.body}>
         <ul className={s.did}>
           {t.did.map((d) => (
-            <li key={d}>{d}</li>
+            <LyricLine key={d} text={d} />
           ))}
         </ul>
         <dl className={s.side}>

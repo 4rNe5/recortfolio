@@ -384,19 +384,56 @@
   list-style: none;
   counter-reset: none;
 }
+/* ---------- 가사 모드 ----------
+   읽기선이 지나가는 줄만 켜지고, 그 줄 안에서는 단어가 읽는 순서대로 채워진다. */
 .did li {
+  --lp: 0;
   position: relative;
-  padding: 0 0 16px 20px;
-  font-size: 16px;
-  line-height: 1.7;
+  padding: 0 0 26px 28px;
+  font-size: clamp(19px, 1.55vw, 23px);
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  transform-origin: 0 50%;
+  transition:
+    opacity 0.55s var(--ease-out),
+    filter 0.55s var(--ease-out),
+    transform 0.7s cubic-bezier(0.25, 1.35, 0.45, 1);
 }
+.did li[data-state="next"] {
+  opacity: 0.32;
+  filter: blur(1.4px);
+}
+.did li[data-state="past"] {
+  opacity: 0.38;
+}
+.did li[data-state="now"] {
+  opacity: 1;
+  transform: scale(1.015);
+}
+/* 단어 채우기: 줄 진행도(--lp)가 단어 위치(--wi)를 넘으면 켜진다 */
+.word {
+  opacity: calc(0.28 + 0.72 * clamp(0, (var(--lp) * 1.12 - var(--wi)) * 7, 1));
+}
+.did li[data-state="past"] .word {
+  opacity: 1;
+}
+/* 앞쪽 표시: 지금 줄에서만 길어지며 트랙 색 */
 .did li::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 0.72em;
-  width: 8px;
+  top: 0.7em;
+  width: 10px;
   height: 2px;
+  border-radius: 1px;
+  background: var(--line-strong);
+  transition:
+    width 0.5s cubic-bezier(0.25, 1.35, 0.45, 1),
+    background-color 0.4s;
+}
+.did li[data-state="now"]::before {
+  width: 18px;
   background: var(--c);
 }
 .side {
@@ -760,6 +797,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .did li,
+  .did li[data-state] {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition: none;
+  }
+  .word {
+    opacity: 1;
+  }
   .bar,
   .bar .wave,
   .stuckTitle {
