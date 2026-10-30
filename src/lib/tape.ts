@@ -74,6 +74,8 @@ class Tape {
   private leverSince = 0;
   private leverSeeked = false;
   private leverPeak = 0;
+  private leverStartY = 0;
+  private leverStartTrack = 0;
 
   private angle = 0;
   private lastDetent = 0;
@@ -426,11 +428,14 @@ class Tape {
   }
 
   // 레버
-  leverStart() {
+  /** t: 입력 이벤트의 timeStamp — 화면이 버벅여도 누른 시간을 정확히 잰다 */
+  leverStart(t = performance.now()) {
     sound.unlock();
-    this.leverSince = performance.now();
+    this.leverSince = t;
     this.leverSeeked = false;
     this.leverPeak = 0;
+    this.leverStartY = window.scrollY;
+    this.leverStartTrack = this.snap.track;
     this.tween = null;
   }
   leverMove(v: number) {
@@ -442,12 +447,17 @@ class Tape {
       this.flash(this.lever > 0 ? "▶▶ FAST FORWARD" : "◀◀ REWIND", 900);
     }
   }
-  leverEnd() {
+  leverEnd(t = performance.now()) {
     const peak = this.leverPeak;
     this.lever = 0;
-    if (!this.leverSeeked && Math.abs(peak) > 0.4) {
-      if (peak > 0) this.next();
-      else this.prev();
+    const flick = t - this.leverSince < 300 || !this.leverSeeked;
+    if (flick && Math.abs(peak) > 0.4) {
+      // 짧게 튕김: 누르기 시작한 시점 기준으로 트랙 이동 (그 사이 감긴 만큼은 되돌린다)
+      window.scrollTo(0, this.leverStartY);
+      const i = this.leverStartTrack;
+      if (peak > 0) this.goTo(i + 1);
+      else this.goTo(this.leverStartY - this.trackTop(i) > 80 ? i : i - 1);
+      return;
     }
     this.playPos = window.scrollY;
   }

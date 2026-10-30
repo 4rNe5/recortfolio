@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState, type PointerEvent as RPE } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as RPE } from "react";
 import { tracks } from "@/content/portfolio";
 import { tape, type Frame } from "@/lib/tape";
 import { formatTime, useFrame, useTape } from "@/lib/useTape";
@@ -29,6 +29,7 @@ export default function Recorder() {
   const [hint, setHint] = useState<string | null>(null);
   const [pressed, setPressed] = useState<string | null>(null);
 
+  const deviceRef = useRef<HTMLDivElement>(null);
   const rotorRef = useRef<HTMLDivElement>(null);
   const screwRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
@@ -52,6 +53,40 @@ export default function Recorder() {
     levelR.current?.style.setProperty("--lv", (f.level * (0.82 + 0.18 * Math.sin(f.seconds * 3.1))).toFixed(3));
   }, []);
   useFrame(onFrame);
+
+  // ---- 빛: 포인터 위치를 광원으로 삼아 알루미늄 반사를 움직인다 ----
+  useEffect(() => {
+    const el = deviceRef.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const cur = { x: 28, y: 14, a: 225 };
+    const goal = { ...cur };
+    let raf = 0;
+    const tick = () => {
+      cur.x += (goal.x - cur.x) * 0.12;
+      cur.y += (goal.y - cur.y) * 0.12;
+      let da = goal.a - cur.a;
+      da = ((((da + 180) % 360) + 360) % 360) - 180;
+      cur.a += da * 0.12;
+      el.style.setProperty("--lx", `${cur.x.toFixed(1)}%`);
+      el.style.setProperty("--ly", `${cur.y.toFixed(1)}%`);
+      el.style.setProperty("--la", `${cur.a.toFixed(1)}deg`);
+      raf = Math.abs(goal.x - cur.x) + Math.abs(goal.y - cur.y) + Math.abs(da) > 0.3 ? requestAnimationFrame(tick) : 0;
+    };
+    const move = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 100;
+      const y = ((e.clientY - r.top) / r.height) * 100;
+      goal.x = Math.max(-30, Math.min(130, x));
+      goal.y = Math.max(-30, Math.min(130, y));
+      goal.a = (Math.atan2(e.clientY - (r.top + r.height * 0.36), e.clientX - (r.left + r.width / 2)) * 180) / Math.PI + 90;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", move);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
 
   // ---- 휠 ----
   const wheel = useRef<{ cx: number; cy: number; a: number; total: number; t0: number; samples: [number, number][]; onHub: boolean } | null>(null);
@@ -114,7 +149,7 @@ export default function Recorder() {
     e.currentTarget.setPointerCapture(e.pointerId);
     lever.current = { y: e.clientY, range: e.currentTarget.getBoundingClientRect().height * 0.16 };
     setLeverOn(true);
-    tape.leverStart();
+    tape.leverStart(e.timeStamp);
   };
   const leverMove = (e: RPE<HTMLDivElement>) => {
     const l = lever.current;
@@ -123,12 +158,12 @@ export default function Recorder() {
     leverRef.current?.style.setProperty("--lev", v.toFixed(3));
     tape.leverMove(v);
   };
-  const leverUp = () => {
+  const leverUp = (e: RPE<HTMLDivElement>) => {
     if (!lever.current) return;
     lever.current = null;
     setLeverOn(false);
     leverRef.current?.style.setProperty("--lev", "0");
-    tape.leverEnd();
+    tape.leverEnd(e.timeStamp);
   };
 
   // ---- 페이더 ----
@@ -194,7 +229,7 @@ export default function Recorder() {
 
   return (
     <figure className={s.wrap} aria-label="녹음기 인터페이스 — 포트폴리오 내비게이션">
-      <div className={s.device} data-playing={snap.playing || undefined} data-rec={snap.rec || undefined}>
+      <div ref={deviceRef} className={s.device} data-playing={snap.playing || undefined} data-rec={snap.rec || undefined}>
         <div className={s.antenna} aria-hidden />
 
         {/* 왼쪽 레버: 위 = 빨리감기, 아래 = 되감기 */}
@@ -232,6 +267,7 @@ export default function Recorder() {
 
         <div className={s.body}>
           <div className={s.grain} aria-hidden />
+          <div className={s.light} aria-hidden />
           <span className={s.label} aria-hidden>
             4rNe5
           </span>
@@ -244,9 +280,7 @@ export default function Recorder() {
               <span className={s.oledTime} ref={timeRef}>
                 0.00.00
               </span>
-              <span className={s.oledState} aria-hidden>
-                {snap.rec ? <i className={s.recDot} /> : snap.playing ? "▶" : "■"}
-              </span>
+              <span className={s.oledState} data-state={snap.rec ? "rec" : snap.playing ? "play" : "stop"} aria-hidden />
             </div>
             <div className={s.oledBottom}>
               <span className={s.oledLine}>
