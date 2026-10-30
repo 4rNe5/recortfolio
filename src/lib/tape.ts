@@ -467,6 +467,8 @@ class Tape {
     if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const onControl = el && /^(BUTTON|A)$/.test(el.tagName);
+    // 재생목록이 열려 있으면 그쪽이 키를 받는다 (닫기만 여기서 처리)
+    if (this.snap.menu && !["Escape", "m", "M"].includes(e.key)) return;
     switch (e.key) {
       case " ":
         if (onControl) return;
