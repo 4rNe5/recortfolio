@@ -24,19 +24,24 @@ function bars(seed: string, n: number) {
 export default function Waveform({ seed, count = 96 }: { seed: string; count?: number }) {
   const b = bars(seed, count);
   const w = count * 4;
-  const path = b
-    .map((v, i) => {
-      const hgt = v * 36;
-      return `M${i * 4 + 1} ${20 - hgt / 2}h2v${hgt}h-2z`;
-    })
-    .join("");
+  // 막대를 네 묶음으로 나눠 그린다 — 빨리 감을 때(--v) 묶음마다 다른 폭으로 튄다
+  const groups = [0, 1, 2, 3].map((g) =>
+    b
+      .map((v, i) => {
+        if ((i * 7 + (i >> 2)) % 4 !== g) return "";
+        const hgt = v * 36;
+        return `M${i * 4 + 1} ${20 - hgt / 2}h2v${hgt}h-2z`;
+      })
+      .join(""),
+  );
+  const paths = groups.map((d, g) => <path key={g} d={d} />);
   return (
-    <div className={s.wave} aria-hidden>
+    <div className={s.wave} data-wave aria-hidden>
       <svg viewBox={`0 0 ${w} 40`} preserveAspectRatio="none" className={s.waveBase}>
-        <path d={path} />
+        {paths}
       </svg>
       <svg viewBox={`0 0 ${w} 40`} preserveAspectRatio="none" className={s.waveFill}>
-        <path d={path} />
+        {paths}
       </svg>
       <span className={s.playhead} />
     </div>

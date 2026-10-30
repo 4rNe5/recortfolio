@@ -290,13 +290,17 @@ export default function Recorder() {
               </span>
               <span className={s.oledNo}>{no}</span>
             </div>
+            <span className={s.oledBoot} aria-hidden />
           </div>
 
           <button className={s.mKey} aria-label="트랙리스트 열기" onClick={() => tape.toggleMenu()} {...press("menu")}>
             M
           </button>
 
-          <button className={`${s.side} ${s.side1}`} aria-label="테마 전환" onClick={() => tape.cycleTheme()} {...press("theme")} />
+          <button className={`${s.side} ${s.side1}`} aria-label="테마 전환" onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              tape.cycleTheme({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+            }} {...press("theme")} />
           <span className={`${s.side} ${s.side2}`} aria-hidden />
           <span className={`${s.side} ${s.side3}`} aria-hidden />
 

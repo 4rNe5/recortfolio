@@ -38,7 +38,7 @@ export const viewport: Viewport = {
 };
 
 // 첫 페인트 전에 저장된 테마를 적용하고, JS 사용 가능 표시를 남긴다 (깜빡임 방지)
-const boot = `try{var d=document.documentElement;d.setAttribute('data-js','');var t=localStorage.getItem('recortfolio:theme');if(t==='light'||t==='dark')d.setAttribute('data-theme',t)}catch(e){}`;
+const boot = `try{var d=document.documentElement;d.setAttribute('data-js','');var t=localStorage.getItem('recortfolio:theme');if(t==='light'||t==='dark')d.setAttribute('data-theme',t);if(!sessionStorage.getItem('recortfolio:booted')){sessionStorage.setItem('recortfolio:booted','1');if(!matchMedia('(prefers-reduced-motion: reduce)').matches)d.setAttribute('data-boot','')}}catch(e){}`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

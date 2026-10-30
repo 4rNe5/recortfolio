@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { flushSync } from "react-dom";
 import { tracks, type Track } from "@/content/portfolio";
 import * as sound from "@/lib/sound";
-import { tape, type Frame } from "@/lib/tape";
+import { tape, type Frame, type VT } from "@/lib/tape";
 import { formatDuration, useFrame, useTape } from "@/lib/useTape";
 import s from "./TrackMenu.module.css";
 
@@ -16,7 +17,7 @@ const subOf = (t: Track) => (t.kind === "project" ? t.period : SUB[t.kind]);
 
 function Cover({ t, i, size }: { t: Track; i: number; size: number }) {
   return (
-    <span className={s.cover} style={{ width: size, height: size, ["--c" as string]: t.color } as CSSProperties}>
+    <span className={s.cover} data-cover style={{ width: size, height: size, ["--c" as string]: t.color } as CSSProperties}>
       {t.kind === "project" ? (
         <Image src={t.icon} alt="" width={size * 2} height={size * 2} data-logo={t.id === "sfoodgo" || undefined} />
       ) : (
@@ -31,7 +32,10 @@ export default function TrackMenu() {
   const snap = useTape();
   const [durations, setDurations] = useState<number[]>([]);
   const [sel, setSel] = useState(0);
+  /** 마우스로 고른 줄은 목록을 굴리지 않는다 (굴리면 줄이 커서 밑에서 미끄러져 다른 줄이 눌린다) */
+  const byMouse = useRef(false);
   const listRef = useRef<HTMLOListElement>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLSpanElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
   const elapsedRef = useRef<HTMLSpanElement>(null);
@@ -47,6 +51,7 @@ export default function TrackMenu() {
       const d = tape.durations();
       durRef.current = d;
       setDurations(d);
+      byMouse.current = false;
       setSel(tape.getSnapshot().track);
       requestAnimationFrame(() => listRef.current?.focus({ preventScroll: true }));
     } else if (opener.current instanceof HTMLElement) {
@@ -58,7 +63,7 @@ export default function TrackMenu() {
   // 선택한 줄이 항상 보이게
   useEffect(() => {
     const l = listRef.current;
-    if (!l || !open) return;
+    if (!l || !open || byMouse.current) return;
     const top = sel * ROW;
     if (top < l.scrollTop) l.scrollTo({ top, behavior: "smooth" });
     else if (top + ROW > l.scrollTop + l.clientHeight) l.scrollTo({ top: top + ROW - l.clientHeight, behavior: "smooth" });
@@ -93,8 +98,38 @@ export default function TrackMenu() {
   useFrame(onFrame);
 
   const choose = (i: number) => {
-    tape.goTo(i);
-    tape.toggleMenu(false);
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => VT };
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!doc.startViewTransition || reduced) {
+      tape.goTo(i);
+      tape.toggleMenu(false);
+      return;
+    }
+    // 고른 표지가 날아가 챕터 아이콘 자리에 안착한다 (프로젝트 트랙만 — 나머지는 장면 전환)
+    const root = document.documentElement;
+    const player = playerRef.current;
+    const cover = listRef.current?.querySelector<HTMLElement>(`#trk-${i} [data-cover]`);
+    const icon = document.querySelector<HTMLElement>(`[data-icon="${i}"]`);
+    const named: HTMLElement[] = [];
+    const name = (el: HTMLElement | null | undefined, n: string) => {
+      if (!el) return;
+      el.style.viewTransitionName = n;
+      named.push(el);
+    };
+    name(player, "menu");
+    if (icon) name(cover, "cover");
+    root.classList.add("vt-pick");
+    const vt = doc.startViewTransition(() => {
+      named.forEach((el) => (el.style.viewTransitionName = ""));
+      named.length = 0;
+      flushSync(() => tape.toggleMenu(false));
+      tape.jumpTo(i);
+      if (icon) name(icon, "cover");
+    });
+    vt.finished.finally(() => {
+      named.forEach((el) => (el.style.viewTransitionName = ""));
+      root.classList.remove("vt-pick");
+    });
   };
   const move = (i: number) => {
     const n = Math.max(0, Math.min(tracks.length - 1, i));
@@ -105,6 +140,7 @@ export default function TrackMenu() {
   };
   const onKey = (e: KeyboardEvent) => {
     const k = e.key;
+    byMouse.current = false;
     if (k === "ArrowDown" || k === "ArrowRight") move(sel + 1);
     else if (k === "ArrowUp" || k === "ArrowLeft") move(sel - 1);
     else if (k === "Home") move(0);
@@ -122,7 +158,7 @@ export default function TrackMenu() {
     <div className={s.root} data-open={open || undefined} inert={!open}>
       <button className={s.scrim} tabIndex={-1} aria-label="닫기" onClick={() => tape.toggleMenu(false)} />
 
-      <div className={s.player} role="dialog" aria-modal="true" aria-label="트랙리스트">
+      <div ref={playerRef} className={s.player} role="dialog" aria-modal="true" aria-label="트랙리스트">
         <div className={s.grille} aria-hidden />
         <div className={s.screen}>
           {/* 상태줄 */}
@@ -175,7 +211,11 @@ export default function TrackMenu() {
                   data-sel={i === sel || undefined}
                   data-current={i === snap.track || undefined}
                   style={{ ["--c" as string]: t.color, ["--i" as string]: i } as CSSProperties}
-                  onPointerEnter={(e) => e.pointerType === "mouse" && move(i)}
+                  onPointerEnter={(e) => {
+                    if (e.pointerType !== "mouse") return;
+                    byMouse.current = true;
+                    move(i);
+                  }}
                   onClick={() => choose(i)}
                 >
                   <span className={s.no}>

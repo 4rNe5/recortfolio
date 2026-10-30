@@ -15,6 +15,9 @@ const DETENT = 15;
 
 export type Theme = "auto" | "light" | "dark";
 
+/** View Transition — lib.dom 버전 차이를 피하려고 필요한 만큼만 선언 */
+export type VT = { ready: Promise<void>; finished: Promise<void>; updateCallbackDone: Promise<void> };
+
 export type Snapshot = {
   track: number;
   playing: boolean;
@@ -51,9 +54,12 @@ const INITIAL: Snapshot = {
 };
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
-type Tween = { from: number; to: number; t0: number; dur: number };
+/**
+ * 임계감쇠 스프링 — 현재 속도(v)를 이어받아 목표(to)로 간다.
+ * 스프링이 직접 to를 쫓으면 출발 순간 가속이 너무 커서, 한 번 걸러진 가상 목표(g)를 쫓게 해 부드럽게 출발한다.
+ */
+type Spring = { to: number; g: number; x: number; v: number; w: number; i: number };
 
 class Tape {
   private snap: Snapshot = INITIAL;
@@ -61,13 +67,21 @@ class Tape {
   private frameListeners = new Set<(f: Frame) => void>();
 
   private sections: HTMLElement[] = [];
+  private waves: (HTMLElement | null)[] = [];
   private tops: number[] = [];
   private raf = 0;
   private last = 0;
   private started = false;
 
   private playPos = 0;
-  private tween: Tween | null = null;
+  private spring: Spring | null = null;
+  /** 테이프 모터의 실제 속도(px/s) — 재생·정지 때 서서히 붙고 풀린다 */
+  private motor = 0;
+  /** 부호 있는 스크롤 속도(px/s) */
+  private vel = 0;
+  private lastP: number[] = [];
+  private lastV = -1;
+  private vSection = -1;
   private inertia = 0; // px/s
   private dragging = false;
   private lever = 0; // -1..1 (위 = 빨리감기)
@@ -121,8 +135,10 @@ class Tape {
     const ro = new ResizeObserver(() => this.measure());
     ro.observe(document.body);
     const cancel = () => {
-      this.tween = null;
+      this.spring = null;
       if (!this.dragging) this.inertia = 0;
+      // 정지 후 관성으로 미끄러지는 중이면 손을 대는 순간 멈춘다
+      if (!this.snap.playing) this.motor = 0;
     };
     window.addEventListener("wheel", cancel, { passive: true });
     window.addEventListener("touchstart", cancel, { passive: true });
@@ -144,7 +160,9 @@ class Tape {
   }
 
   measure() {
+    this.lastP = [];
     this.sections = Array.from(document.querySelectorAll<HTMLElement>("[data-track]"));
+    this.waves = this.sections.map((s) => s.querySelector<HTMLElement>("[data-wave]"));
     this.tops = this.sections.map((s) => s.getBoundingClientRect().top + window.scrollY);
   }
 
@@ -171,12 +189,23 @@ class Tape {
     let y = window.scrollY;
     let driven = false;
 
-    if (this.tween) {
-      const t = clamp((now - this.tween.t0) / this.tween.dur, 0, 1);
-      y = this.tween.from + (this.tween.to - this.tween.from) * easeInOut(t);
+    if (this.spring) {
+      const s = this.spring;
+      s.g += (s.to - s.g) * (1 - Math.exp(-dt * s.w * 1.1));
+      const h = dt / 4;
+      for (let k = 0; k < 4; k++) {
+        const a = s.w * s.w * (s.g - s.x) - 2 * s.w * s.v;
+        s.v += a * h;
+        s.x += s.v * h;
+      }
+      if (Math.abs(s.to - s.x) < 1.5 && Math.abs(s.v) < 20) {
+        s.x = s.to;
+        this.spring = null;
+      }
+      y = clamp(s.x, 0, max);
       window.scrollTo(0, y);
+      this.playPos = y;
       driven = true;
-      if (t >= 1) this.tween = null;
     } else if (this.inertia !== 0 && !this.dragging) {
       y = clamp(y + this.inertia * dt, 0, max);
       window.scrollTo(0, y);
@@ -193,13 +222,21 @@ class Tape {
       driven = true;
     }
 
-    if (this.snap.playing && !this.dragging && !this.tween) {
+    // 테이프 모터: 목표 속도로 서서히 붙고(약 0.7초), 멈추면 관성으로 풀린다(약 0.5초)
+    const goal = this.snap.playing && !this.dragging && !this.spring ? BASE_PX_PER_SEC * SPEEDS[this.snap.speedIndex] : 0;
+    if (this.reduced) this.motor = goal;
+    else this.motor += (goal - this.motor) * (1 - Math.exp(-dt * (goal > this.motor ? 3.4 : 5)));
+    if (goal === 0 && this.motor < 3) this.motor = 0;
+    if (this.motor > 0 && !this.dragging && !this.spring) {
       if (Math.abs(y - this.playPos) > 4) this.playPos = y; // 사용자가 직접 스크롤한 경우 따라간다
-      this.playPos += BASE_PX_PER_SEC * SPEEDS[this.snap.speedIndex] * dt;
+      this.playPos += this.motor * dt;
       if (this.playPos >= max) {
         this.playPos = max;
-        this.set({ playing: false });
-        this.flash("END OF TAPE");
+        this.motor = 0;
+        if (this.snap.playing) {
+          this.set({ playing: false });
+          this.flash("END OF TAPE");
+        }
       }
       window.scrollTo(0, this.playPos);
       y = this.playPos;
@@ -212,9 +249,12 @@ class Tape {
     this.angle += (target - this.angle) * k;
 
     // 레벨 미터: 스크롤 속도 + 재생 중 기본 레벨
-    const v = dt > 0 ? Math.abs(y - this.lastY) / dt : 0;
+    const sv = dt > 0 ? (y - this.lastY) / dt : 0;
+    this.vel += (sv - this.vel) * 0.5;
+    const v = Math.abs(sv);
     this.lastY = y;
-    const base = this.snap.playing ? 0.35 + 0.15 * Math.sin(now / 140) * Math.sin(now / 370) : 0;
+    const run = clamp(this.motor / (BASE_PX_PER_SEC * SPEEDS[this.snap.speedIndex]), 0, 1);
+    const base = run * (0.35 + 0.15 * Math.sin(now / 140) * Math.sin(now / 370));
     const want = clamp(Math.max(base, v / 2400), 0, 1);
     this.level += (want - this.level) * (1 - Math.exp(-dt * (want > this.level ? 30 : 5)));
 
@@ -239,7 +279,24 @@ class Tape {
     const tp = clamp((probe - start) / Math.max(1, end - start), 0, 1);
     for (let j = 0; j < this.sections.length; j++) {
       const p = j < i ? 1 : j > i ? 0 : y >= max - 2 ? 1 : tp;
-      this.sections[j].style.setProperty("--p", p.toFixed(4));
+      if (this.lastP[j] === undefined || Math.abs(p - this.lastP[j]) > 0.0004) {
+        this.lastP[j] = p;
+        this.sections[j].style.setProperty("--p", p.toFixed(4));
+      }
+    }
+    // 속도 신호(--v)는 지금 트랙의 파형에만 — 빨리 감을 때 튄다 (재생 기본 레벨은 제외)
+    const sec = this.waves[i];
+    if (sec) {
+      if (this.vSection !== i) {
+        this.waves[this.vSection]?.style.setProperty("--v", "0");
+        this.vSection = i;
+        this.lastV = -1;
+      }
+      const lv = this.reduced ? 0 : clamp((this.level - 0.5) / 0.5, 0, 1);
+      if (Math.abs(lv - this.lastV) > 0.01 || (lv === 0 && this.lastV !== 0)) {
+        this.lastV = lv;
+        sec.style.setProperty("--v", lv.toFixed(3));
+      }
     }
     if (i !== this.snap.track && this.tops.length) this.changeTrack(i);
 
@@ -257,18 +314,25 @@ class Tape {
 
   private changeTrack(i: number) {
     const t = tracks[i];
-    const root = document.documentElement;
-    if (t) {
-      const theme = root.getAttribute("data-theme");
-      const dark = theme === "dark" || (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-      const mono = t.color === "#1f1f1f";
-      root.style.setProperty("--accent", mono && dark ? "#ededeb" : t.color);
-      root.style.setProperty("--accent-ink", mono && dark ? "#111111" : t.ink);
-    }
+    const from = this.snap.track;
     // 연락처 트랙을 벗어날 때만 REC 해제 (REC로 이동하는 도중 지나치는 트랙은 무시)
     const leftContact = this.snap.rec && tracks[this.snap.track]?.kind === "contact" && t?.kind !== "contact";
     this.set({ track: i, rec: leftContact ? false : this.snap.rec });
+    this.refreshAccent();
     if (this.snap.sound) sound.chime(i);
+    // 트랙이 바뀌는 순간을 연출하는 쪽에 알린다
+    window.dispatchEvent(new CustomEvent("tape:track", { detail: { i, from } }));
+  }
+
+  private refreshAccent() {
+    const t = tracks[this.snap.track];
+    if (!t) return;
+    const root = document.documentElement;
+    const theme = root.getAttribute("data-theme");
+    const dark = theme === "dark" || (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const mono = t.color === "#1f1f1f";
+    root.style.setProperty("--accent", mono && dark ? "#ededeb" : t.color);
+    root.style.setProperty("--accent-ink", mono && dark ? "#111111" : t.ink);
   }
 
   // ---- 조작 ----
@@ -291,19 +355,43 @@ class Tape {
     this.inertia = 0;
     if (this.reduced || dist < 2) {
       window.scrollTo(0, to);
-      this.tween = null;
+      this.spring = null;
+      this.playPos = to;
     } else {
-      this.tween = { from, to, t0: performance.now(), dur: clamp(420 + dist * 0.12, 520, 1500) };
+      // 먼 거리일수록 낮은 고유진동수 — 순간 속도가 과하지 않게 (도착까지 약 0.6~1.3초)
+      const w = clamp(18 / (1 + dist / 3500), 6.5, 14);
+      // 이미 움직이는 중이면(이동·관성·재생) 그 위치·속도를 이어받는다
+      const s = this.spring;
+      const x = s ? s.x : from;
+      const g = s ? s.g : from;
+      const v = clamp(s ? s.v : this.vel, -12000, 12000);
+      this.spring = { to, g, x, v, w, i: n };
     }
-    this.playPos = to;
     if (!opts.silent) this.click(1.1);
   }
 
+  /** 즉시 이동 — 화면 전환 연출(View Transition) 안에서 쓴다 */
+  jumpTo(i: number) {
+    const to = this.trackTop(clamp(i, 0, this.tops.length - 1));
+    this.spring = null;
+    this.inertia = 0;
+    this.motor = this.snap.playing ? this.motor : 0;
+    window.scrollTo(0, to);
+    this.playPos = to;
+    this.lastY = to;
+  }
+
+  /** 이동 중이면 가고 있는 트랙을 기준으로 — 연타하면 그만큼 더 간다 */
+  private base() {
+    return this.spring ? this.spring.i : this.snap.track;
+  }
+
   next() {
-    this.goTo(this.snap.track + 1);
+    this.goTo(this.base() + 1);
   }
   prev() {
     // 트랙 진행 중이면 트랙 처음으로, 처음이면 이전 트랙으로 (실제 플레이어와 같은 동작)
+    if (this.spring) return this.goTo(this.spring.i - 1);
     const y = window.scrollY;
     const top = this.trackTop(this.snap.track);
     this.goTo(y - top > 80 ? this.snap.track : this.snap.track - 1);
@@ -316,7 +404,7 @@ class Tape {
       window.scrollTo(0, 0);
     }
     this.playPos = window.scrollY;
-    this.tween = null;
+    this.spring = null;
     this.set({ playing });
     this.click(playing ? 1.2 : 0.9);
     this.flash(playing ? `PLAY ${SPEEDS[this.snap.speedIndex]}X` : "PAUSE");
@@ -380,10 +468,31 @@ class Tape {
     this.click(1.3);
   }
 
-  cycleTheme() {
+  /** origin: 새 테마가 원으로 퍼져 나갈 화면 좌표(누른 키 위치) */
+  cycleTheme(origin?: { x: number; y: number }) {
     const order: Theme[] = ["auto", "light", "dark"];
     const next = order[(order.indexOf(this.snap.theme) + 1) % order.length];
-    this.applyTheme(next, true);
+    const apply = () => {
+      this.applyTheme(next, true);
+      this.refreshAccent();
+    };
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => VT };
+    if (origin && doc.startViewTransition && !this.reduced) {
+      const root = document.documentElement;
+      root.classList.add("vt-theme");
+      const vt = doc.startViewTransition(apply);
+      vt.ready
+        .then(() => {
+          const { x, y } = origin;
+          const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+          root.animate(
+            { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+            { duration: 720, easing: "cubic-bezier(0.3, 0.6, 0.2, 1)", pseudoElement: "::view-transition-new(root)" },
+          );
+        })
+        .catch(() => {});
+      vt.finished.finally(() => root.classList.remove("vt-theme"));
+    } else apply();
     this.click(1.4);
     this.flash(`THEME ${next.toUpperCase()}`);
   }
@@ -405,8 +514,9 @@ class Tape {
   dragStart() {
     sound.unlock();
     this.dragging = true;
-    this.tween = null;
+    this.spring = null;
     this.inertia = 0;
+    this.motor = 0;
   }
   dragBy(deg: number) {
     const y = clamp(window.scrollY + deg / DEG_PER_PX, 0, this.maxScroll());
@@ -420,7 +530,7 @@ class Tape {
 
   // 페이더: 전체 테이프 위치 스크럽
   scrubTo(p: number) {
-    this.tween = null;
+    this.spring = null;
     this.inertia = 0;
     const y = clamp(p, 0, 1) * this.maxScroll();
     window.scrollTo(0, y);
@@ -436,7 +546,7 @@ class Tape {
     this.leverPeak = 0;
     this.leverStartY = window.scrollY;
     this.leverStartTrack = this.snap.track;
-    this.tween = null;
+    this.spring = null;
   }
   leverMove(v: number) {
     const prev = this.lever;

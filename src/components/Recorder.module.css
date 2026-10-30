@@ -936,6 +936,89 @@
   }
 }
 
+/* ---------- 첫 방문: 전원 켜기 (세션당 1회, html[data-boot]) ---------- */
+.oledBoot {
+  display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-boot]) .device {
+    animation: bootRise 0.8s var(--ease-out) both;
+  }
+  /* OLED: 가운데 가는 빛줄 → 화면 전체로 번졌다가 내용이 켜진다 */
+  :global(html[data-boot]) .oledBoot {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: calc(var(--u) * 3);
+    margin-top: calc(var(--u) * -1.5);
+    background: #fff;
+    box-shadow: 0 0 calc(var(--u) * 10) rgb(255 255 255 / 0.8);
+    transform: scaleX(0);
+    opacity: 0;
+    pointer-events: none;
+    animation: bootLine 0.62s 0.32s cubic-bezier(0.5, 0, 0.2, 1) both;
+  }
+  :global(html[data-boot]) .oledTop,
+  :global(html[data-boot]) .oledBottom {
+    animation: bootScreen 0.5s 0.82s steps(4, jump-end) both;
+  }
+  /* 릴: 모터가 돌기 시작해 제자리에 선다 */
+  :global(html[data-boot]) .rotor,
+  :global(html[data-boot]) .rotorTop {
+    animation: bootSpin 1.25s 0.25s cubic-bezier(0.3, 0, 0.15, 1) both;
+  }
+  /* 트랜스포트 키: 자가 점검처럼 차례로 한 번씩 눌린다 */
+  :global(html[data-boot]) .key {
+    animation: bootKey 0.32s var(--ease-out) both;
+  }
+  :global(html[data-boot]) .keyRec {
+    animation-delay: 0.95s;
+  }
+  :global(html[data-boot]) .keyPlay {
+    animation-delay: 1.05s;
+  }
+  :global(html[data-boot]) .keyStop {
+    animation-delay: 1.15s;
+  }
+}
+@keyframes bootRise {
+  from {
+    opacity: 0;
+    translate: 0 calc(var(--u) * 28);
+  }
+}
+@keyframes bootLine {
+  0% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+  45% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1) scaleY(30);
+  }
+}
+@keyframes bootScreen {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes bootSpin {
+  from {
+    rotate: -220deg;
+  }
+}
+@keyframes bootKey {
+  50% {
+    translate: 0 calc(var(--u) * 6);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .marquee,
   .oledState[data-state="rec"],
