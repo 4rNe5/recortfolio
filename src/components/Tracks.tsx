@@ -10,13 +10,23 @@ const num = (i: number) => String(i).padStart(2, "0");
 const vars = (t: Track) => ({ "--c": t.color, "--ci": t.ink }) as CSSProperties;
 const mono = (t: Track) => (t.color === "#1f1f1f" ? { "data-mono": true } : {});
 
-function Head({ i, right }: { i: number; right?: string }) {
+/** 챕터 머리: 트랙 번호 줄 + 파형. 모바일에선 챕터를 읽는 동안 화면 위에 붙어 있다. */
+function Bar({ i, right, title }: { i: number; right?: string; title: string }) {
   return (
-    <header className={s.head}>
-      <span className={s.no}>Track {num(i)}</span>
-      <span className={s.rule} />
-      {right && <span className={s.right}>{right}</span>}
-    </header>
+    <>
+      <span className={s.sentinel} data-sentinel aria-hidden />
+      <div className={s.bar}>
+        <header className={s.head}>
+          <span className={s.no}>Track {num(i)}</span>
+          <span className={s.stuckTitle} aria-hidden>
+            {title}
+          </span>
+          <span className={s.rule} />
+          {right && <span className={s.right}>{right}</span>}
+        </header>
+        <Waveform seed={tracks[i].id} />
+      </div>
+    </>
   );
 }
 
@@ -31,8 +41,7 @@ function Intro({ i }: { i: number }) {
         <HeroActions />
       </div>
 
-      <Head i={i} right="Intro" />
-      <Waveform seed="intro" />
+      <Bar i={i} right="소개" title="Park Jun Hyeon" />
 
       <ul className={s.principles}>
         {profile.principles.map((p) => (
@@ -82,8 +91,7 @@ function Media({ t }: { t: ProjectTrack }) {
 function Project({ t, i }: { t: ProjectTrack; i: number }) {
   return (
     <section id={t.id} data-track={i} className={`${s.track} ${s.project}`} style={vars(t)} {...mono(t)}>
-      <Head i={i} right={t.period} />
-      <Waveform seed={t.id} />
+      <Bar i={i} right={t.period} title={t.title} />
 
       <div className={s.titleRow}>
         <span className={s.icon} data-logo={t.id === "sfoodgo" || undefined}>
@@ -140,8 +148,7 @@ function Awards({ i }: { i: number }) {
   const t = tracks[i];
   return (
     <section id={t.id} data-track={i} className={`${s.track} ${s.awards}`} style={vars(t)}>
-      <Head i={i} right="2023 – 2024" />
-      <Waveform seed={t.id} />
+      <Bar i={i} right="2023 – 2024" title="Awards" />
       <h2 className={s.title}>Awards</h2>
       <p className={s.tagline}>해커톤과 공모전에서 아홉 번 수상했고, 그중 세 번은 1등이었습니다.</p>
       <ol className={s.awardList}>
@@ -164,8 +171,7 @@ function Stage({ i }: { i: number }) {
   const t = tracks[i];
   return (
     <section id={t.id} data-track={i} className={`${s.track} ${s.stage}`} style={vars(t)}>
-      <Head i={i} right="발표와 전시" />
-      <Waveform seed={t.id} />
+      <Bar i={i} right="발표와 전시" title="On stage" />
       <h2 className={s.title}>On stage</h2>
       <p className={s.tagline}>만든 것을 직접 설명하는 자리에 자주 섰습니다.</p>
       <ul className={s.stageList}>
@@ -201,8 +207,7 @@ function Contact({ i }: { i: number }) {
   const t = tracks[i];
   return (
     <section id={t.id} data-track={i} className={`${s.track} ${s.contact}`} style={vars(t)}>
-      <Head i={i} right="Side A 끝" />
-      <Waveform seed={t.id} />
+      <Bar i={i} right="Side A 끝" title="연락하기" />
       <p className={s.tagline}>다음 트랙을 같이 만들 분을 기다립니다.</p>
       <a className={s.mail} href={`mailto:${profile.email}`}>
         {profile.email}

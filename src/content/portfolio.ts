@@ -52,11 +52,11 @@ export const profile = {
     { t: "포지션을 넘나들며", d: "디자인과 PM을 직접 맡아 봐서, 다른 직군과 같은 언어로 일합니다." },
   ],
   credits: [
-    { k: "Role", v: "앱·웹 프론트엔드, UI/UX 디자인" },
-    { k: "Status", v: "(전) 프리랜서 앱·웹 개발자 (~ 2026.09) / (현) 대한민국 해군 SW개발병" },
-    { k: "Main Skills", v: "TypeScript, React Native, Next.js, Swift, SwiftUI, Figma" },
-    { k: "Sub Skills", v: "Expo, EAS, Zustand, Socket.IO, STOMP, Rive, Tuist, Firebase" },
-    { k: "History", v: "[마스터웨이] 프론트엔드 개발자 재직(25.09 ~ 25.12)" },
+    { k: "역할", v: "앱·웹 프론트엔드, UI/UX 디자인" },
+    { k: "근황", v: "(전) 프리랜서 앱·웹 개발자 (~ 2026.09) / (현) 대한민국 해군 SW개발병" },
+    { k: "주력 기술", v: "TypeScript, React Native, Next.js, Swift, SwiftUI, Figma" },
+    { k: "보조 기술", v: "Expo, EAS, Zustand, Socket.IO, STOMP, Rive, Tuist, Firebase" },
+    { k: "경력", v: "[마스터웨이] 프론트엔드 개발자 재직(25.09 ~ 25.12)" },
   ],
 };
 
