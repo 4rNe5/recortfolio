@@ -610,10 +610,24 @@
   outline: none;
 }
 .socialName {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
   font-family: var(--font-display);
   font-weight: 500;
   font-size: clamp(22px, 2vw, 30px);
   letter-spacing: -0.03em;
+}
+/* 채널 아이콘: 글자와 같은 색(단색) — 테마·hover 반전을 그대로 따른다 */
+.socialIcon {
+  flex: none;
+  width: 0.8em;
+  height: 0.8em;
+  opacity: 0.88;
+}
+.socials a:hover .socialIcon,
+.socials a:focus-visible .socialIcon {
+  opacity: 1;
 }
 .socialHandle {
   font-size: 14px;

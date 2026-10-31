@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { awards, profile, stage, tracks, type ProjectTrack, type Track } from "@/content/portfolio";
 import HeroName from "./HeroName";
 import HeroActions from "./HeroActions";
+import SocialIcon from "./SocialIcon";
 import Waveform from "./Waveform";
 import s from "./Tracks.module.css";
 
@@ -233,7 +234,10 @@ function Contact({ i }: { i: number }) {
         {profile.socials.map((x) => (
           <li key={x.name}>
             <a href={x.href} target="_blank" rel="noreferrer">
-              <span className={s.socialName}>{x.name}</span>
+              <span className={s.socialName}>
+                <SocialIcon name={x.name} className={s.socialIcon} />
+                {x.name}
+              </span>
               <span className={s.socialHandle}>{x.handle}</span>
               <span className={s.jack} aria-hidden />
             </a>
