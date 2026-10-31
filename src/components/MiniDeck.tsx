@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent as RPE } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as RPE } from "react";
 import { tracks } from "@/content/portfolio";
 import { tape, type Frame } from "@/lib/tape";
 import { formatTime, useFrame, useTape } from "@/lib/useTape";
 import s from "./MiniDeck.module.css";
+
+const SEG = 14; // OLED 레벨 미터 칸 수 (녹음기와 같음)
 
 /** 모바일·태블릿: 기기가 화면 밖으로 나가면 나타나는 하단 트랜스포트 바 */
 export default function MiniDeck() {
@@ -13,6 +15,8 @@ export default function MiniDeck() {
   const wheelRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
+  const meterRef = useRef<HTMLSpanElement>(null);
+  const lastSeg = useRef(-1);
 
   useEffect(() => {
     const deck = document.getElementById("deck");
@@ -36,6 +40,12 @@ export default function MiniDeck() {
     wheelRef.current?.style.setProperty("--angle", `${f.angle.toFixed(1)}deg`);
     if (timeRef.current) timeRef.current.textContent = formatTime(f.seconds);
     barRef.current?.style.setProperty("--p", f.progress.toFixed(4));
+    // 녹음기 OLED와 같은 칸 단위 레벨 미터
+    const seg = Math.round(Math.min(1, f.level * 1.15) * SEG);
+    if (seg !== lastSeg.current) {
+      lastSeg.current = seg;
+      meterRef.current?.style.setProperty("--seg", String(seg));
+    }
   }, []);
   useFrame(onFrame);
 
@@ -62,6 +72,17 @@ export default function MiniDeck() {
     tape.dragEnd(performance.now() - drag.current.t < 80 ? drag.current.v : 0);
     drag.current = null;
   };
+
+  // 트랙이 바뀌면 번호가 OLED를 반전해 덮었다가 사라진다 (녹음기와 같음)
+  const [flash, setFlash] = useState<number | null>(null);
+  const prevTrack = useRef(snap.track);
+  useEffect(() => {
+    if (prevTrack.current === snap.track) return;
+    prevTrack.current = snap.track;
+    setFlash(snap.track);
+    const id = setTimeout(() => setFlash(null), 650);
+    return () => clearTimeout(id);
+  }, [snap.track]);
 
   const t = tracks[snap.track];
   return (
@@ -90,7 +111,13 @@ export default function MiniDeck() {
           </span>
           <span className={s.no}>{String(snap.track).padStart(2, "0")}</span>
         </span>
+        <span ref={meterRef} className={s.meter} style={{ ["--n" as string]: SEG } as CSSProperties} aria-hidden />
         <span className={s.title}>{snap.message ?? t.display}</span>
+        {flash !== null && (
+          <span key={flash} className={s.flash} aria-hidden>
+            {String(flash).padStart(2, "0")}
+          </span>
+        )}
       </button>
       <div className={s.keys}>
         <button aria-label="이전 트랙" onClick={() => tape.prev()}>
