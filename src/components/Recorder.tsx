@@ -11,7 +11,7 @@ import s from "./Recorder.module.css";
 const Device3D = lazy(() => import("./Device3D"));
 const DW = 853;
 const DH = 1370;
-const MARGIN = 140; // Device3D와 같은 값
+const MARGIN = 200; // Device3D와 같은 값
 
 /** 3D를 켤 수 있는 환경인가: WebGL2, 움직임 줄이기 아님, 메모리 4GB 이상(알 수 있을 때) */
 function can3D() {
