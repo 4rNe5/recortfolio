@@ -108,7 +108,7 @@ function Rows({ rows, lw = "96px", size = "body", ...rest }: { rows: Row[]; lw?:
   );
 }
 
-/** 이미지 틀 — 비율 하나(16:10), 중립 판, 트랙 색은 위 2px 띠로만 */
+/** 이미지 틀 — 비율 하나(16:10), 뒤는 트랙 색 판 */
 function Frame({ t }: { t: ProjectTrack }) {
   if (!t.media) return null;
   return (
