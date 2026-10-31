@@ -23,6 +23,27 @@
   --font-display: var(--font-funnel), var(--font-sans);
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
   --font-oled: var(--font-display);
+
+  /* ---- 디자인 토큰: 모든 챕터가 이것만 쓴다 ---- */
+  /* 글자 크기 5단계 (+ 첫 화면 이름) */
+  --t-label: 13px; /* 이름표·날짜·보조 */
+  --t-body: 16px; /* 본문·줄 값 */
+  --t-lead: clamp(19px, 1.6vw, 24px); /* 한 줄 소개·채널 이름 */
+  --t-num: clamp(32px, 3vw, 48px); /* 수치 */
+  --t-title: clamp(48px, 5.6vw, 96px); /* 챕터 제목 */
+  /* 굵기 2단계 */
+  --w-regular: 400;
+  --w-strong: 600;
+  /* 여백 8px 단위 */
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 32px;
+  --sp-6: 48px;
+  --sp-9: 72px;
+  --sp-12: 96px;
+  /* 모서리 하나 */
+  --radius: 6px;
   color-scheme: light;
   transition: --accent 0.7s ease, --accent-ink 0.7s ease;
 }
