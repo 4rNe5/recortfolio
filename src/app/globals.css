@@ -115,19 +115,6 @@ kbd {
   white-space: nowrap;
 }
 
-/* ---------- 챕터 제목 섞임 (src/lib/scramble.ts) ---------- */
-[data-scramble] {
-  position: relative;
-}
-[data-scramble] > .scr {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-[data-scrambling] > :first-child {
-  opacity: 0;
-}
-
 /* ---------- 화면 전환 (View Transitions) ---------- */
 /* 겹쳐 보이는 시간을 줄인다: 이전 장면은 빨리 빠지고, 새 장면은 살짝 늦게 들어온다 */
 ::view-transition-old(root) {

@@ -97,9 +97,7 @@ function Project({ t, i }: { t: ProjectTrack; i: number }) {
         <span className={s.icon} data-icon={i} data-logo={t.id === "sfoodgo" || undefined}>
           <Image src={t.icon} alt="" width={96} height={96} loading="eager" />
         </span>
-        <h2 className={s.title} data-scramble>
-          <span>{t.title}</span>
-        </h2>
+        <h2 className={s.title}>{t.title}</h2>
       </div>
       <p className={s.tagline}>{t.tagline}</p>
 
@@ -151,9 +149,7 @@ function Awards({ i }: { i: number }) {
   return (
     <section id={t.id} data-track={i} className={`${s.track} ${s.awards}`} style={vars(t)}>
       <Bar i={i} right="2023 – 2024" title="Awards" />
-      <h2 className={s.title} data-scramble>
-        <span>Awards</span>
-      </h2>
+      <h2 className={s.title}>Awards</h2>
       <p className={s.tagline}>해커톤과 공모전에서 아홉 번 수상했고, 그중 세 번은 1등이었습니다.</p>
       <ol className={s.awardList}>
         {awards.map((a) => (
@@ -176,9 +172,7 @@ function Stage({ i }: { i: number }) {
   return (
     <section id={t.id} data-track={i} className={`${s.track} ${s.stage}`} style={vars(t)}>
       <Bar i={i} right="발표와 전시" title="On stage" />
-      <h2 className={s.title} data-scramble>
-        <span>On stage</span>
-      </h2>
+      <h2 className={s.title}>On stage</h2>
       <p className={s.tagline}>만든 것을 직접 설명하는 자리에 자주 섰습니다.</p>
       <ul className={s.stageList}>
         {stage.map((a) => (

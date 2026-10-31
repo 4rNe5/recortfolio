@@ -314,14 +314,11 @@ class Tape {
 
   private changeTrack(i: number) {
     const t = tracks[i];
-    const from = this.snap.track;
     // 연락처 트랙을 벗어날 때만 REC 해제 (REC로 이동하는 도중 지나치는 트랙은 무시)
     const leftContact = this.snap.rec && tracks[this.snap.track]?.kind === "contact" && t?.kind !== "contact";
     this.set({ track: i, rec: leftContact ? false : this.snap.rec });
     this.refreshAccent();
     if (this.snap.sound) sound.chime(i);
-    // 트랙이 바뀌는 순간을 연출하는 쪽에 알린다
-    window.dispatchEvent(new CustomEvent("tape:track", { detail: { i, from } }));
   }
 
   private refreshAccent() {

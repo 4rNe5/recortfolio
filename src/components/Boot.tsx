@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { scramble } from "@/lib/scramble";
 import { tape } from "@/lib/tape";
 
-/** 테이프 엔진 시작 + 챕터 머리 붙음 감지 + 트랙 전환 연출 */
+/** 테이프 엔진 시작 + 챕터 머리 붙음 감지 */
 export default function Boot() {
   useEffect(() => tape.start(), []);
 
@@ -27,21 +26,6 @@ export default function Boot() {
     });
     document.querySelectorAll("[data-sentinel]").forEach((el) => io.observe(el));
     return () => io.disconnect();
-  }, []);
-
-  // 새 트랙에 들어서면 그 챕터 제목이 OLED처럼 한 번 섞였다가 맞춰진다 (화면에 보일 때만)
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const on = (e: Event) => {
-      const { i } = (e as CustomEvent<{ i: number }>).detail;
-      const el = document.querySelector<HTMLElement>(`[data-track="${i}"] [data-scramble]`);
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      if (r.bottom < 0 || r.top > window.innerHeight) return;
-      scramble(el);
-    };
-    window.addEventListener("tape:track", on);
-    return () => window.removeEventListener("tape:track", on);
   }, []);
 
   return null;
