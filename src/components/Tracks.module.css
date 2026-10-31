@@ -56,13 +56,10 @@
   display: none;
 }
 
-/* 타임라인 파형: 막대 하나 = 한 달, 높이 = 그 달의 활동 수.
-   회색(전체 경력) → 이 챕터 기간만 트랙 색(옅게) → 읽은 만큼 진하게(--p) */
 .wave {
-  --pos: calc(var(--a) + var(--p) * (var(--b) - var(--a)));
   position: relative;
   height: 36px;
-  margin: var(--sp-2) 0 var(--sp-3);
+  margin: var(--sp-2) 0 0;
 }
 .wave svg {
   position: absolute;
@@ -92,12 +89,8 @@
 .waveBase path {
   fill: var(--line-strong);
 }
-.waveLit path {
-  fill: var(--c);
-  opacity: 0.32;
-}
 .waveFill {
-  clip-path: inset(-60% calc((1 - var(--pos)) * 100%) -60% 0);
+  clip-path: inset(-60% calc((1 - var(--p)) * 100%) -60% 0);
 }
 .waveFill path {
   fill: var(--c);
@@ -106,28 +99,10 @@
   position: absolute;
   top: -6px;
   bottom: -6px;
-  left: calc(var(--pos) * 100%);
+  left: calc(var(--p) * 100%);
   width: 2px;
-  margin-left: -1px;
   background: var(--fg);
-}
-/* 연도 눈금 */
-.years {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(100% + 4px);
-  height: 16px;
-  font-size: var(--t-label);
-  line-height: 16px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-}
-.years span {
-  position: absolute;
-  padding-left: 4px;
-  border-left: 1px solid var(--line-strong);
+  opacity: calc(min(1, var(--p) * 40) * min(1, (1 - var(--p)) * 40));
 }
 
 /* ---------- 첫 화면 ---------- */
@@ -690,7 +665,7 @@ a.row:focus-visible .jack {
     position: sticky;
     top: 0;
     z-index: 20;
-    margin: 0 -20px var(--sp-4);
+    margin: 0 -20px 40px;
     padding: 12px 20px 10px;
     transition:
       margin-bottom 0.35s var(--ease-out),
@@ -699,7 +674,7 @@ a.row:focus-visible .jack {
   }
   .bar .wave {
     height: 30px;
-    margin: 12px 0 var(--sp-3);
+    margin-top: 12px;
     transition: height 0.35s var(--ease-out), margin 0.35s var(--ease-out);
   }
   .stuckTitle {
@@ -721,21 +696,18 @@ a.row:focus-visible .jack {
       opacity 0.3s,
       transform 0.35s var(--ease-out);
   }
-  /* 붙은 상태: 반투명 흐림 배경, 파형은 낮게, 연도 눈금은 숨김, 트랙 이름 등장.
-     파형·눈금이 줄어든 만큼 아래 여백을 늘려 본문이 튀지 않게 한다 */
+  /* 붙은 상태: 반투명 흐림 배경, 파형은 조금 낮게, 트랙 이름 등장 */
   .track[data-stuck] .bar {
     background: color-mix(in srgb, var(--bg) 92%, transparent);
     backdrop-filter: saturate(1.4) blur(14px);
     -webkit-backdrop-filter: saturate(1.4) blur(14px);
     box-shadow: 0 1px 0 var(--line);
-    margin-bottom: calc(var(--sp-4) + 8px + 3px + var(--sp-3) - 4px);
+    /* 파형이 줄어든 만큼(8px + 3px) 아래 여백을 늘려 본문이 튀지 않게 */
+    margin-bottom: 51px;
   }
   .track[data-stuck] .bar .wave {
     height: 22px;
-    margin: 9px 0 4px;
-  }
-  .track[data-stuck] .years {
-    display: none;
+    margin-top: 9px;
   }
   .track[data-stuck] .stuckTitle {
     max-width: 60vw;

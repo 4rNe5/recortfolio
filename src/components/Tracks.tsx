@@ -8,7 +8,7 @@ import Waveform from "./Waveform";
 import s from "./Tracks.module.css";
 
 // 모든 챕터는 같은 부품 다섯 개로만 짠다:
-//   Section(틀) · Bar(트랙 머리 + 타임라인 파형) · Head(제목 + 한 줄 소개) · Rows(이름표·값 줄) · Frame(이미지 틀)
+//   Section(틀) · Bar(트랙 머리 + 파형) · Head(제목 + 한 줄 소개) · Rows(이름표·값 줄) · Frame(이미지 틀)
 // 글자 크기·굵기·여백은 globals.css의 토큰만 쓴다.
 
 const num = (i: number) => String(i).padStart(2, "0");
@@ -32,7 +32,7 @@ function Section({ t, i, className, children }: { t: Track; i: number; className
   );
 }
 
-/** 챕터 머리: 트랙 번호 줄 + 타임라인 파형. 모바일에선 챕터를 읽는 동안 화면 위에 붙어 있다. */
+/** 챕터 머리: 트랙 번호 줄 + 파형. 모바일에선 챕터를 읽는 동안 화면 위에 붙어 있다. */
 function Bar({ i, right, title }: { i: number; right: string; title: string }) {
   return (
     <>
@@ -46,7 +46,7 @@ function Bar({ i, right, title }: { i: number; right: string; title: string }) {
           <span className={s.rule} />
           <span className={s.right}>{right}</span>
         </header>
-        <Waveform i={i} />
+        <Waveform seed={tracks[i].id} />
       </div>
     </>
   );
