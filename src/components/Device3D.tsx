@@ -48,6 +48,59 @@ function roundRect(w: number, h: number, r: number) {
   s.quadraticCurveTo(x, y, x + r, y);
   return s;
 }
+/** 모서리마다 반경이 다른 사각형 (기기 좌표: x 오른쪽, y 아래) → 3D Shape (원점 기준 이동) */
+function rectPath(x0: number, y0: number, x1: number, y1: number, r: [number, number, number, number], ox: number, oy: number) {
+  const [tl, tr, br, bl] = r;
+  const P = (x: number, y: number) => [x - ox, -(y - oy)] as const;
+  const s = new THREE.Shape();
+  s.moveTo(...P(x0 + tl, y0));
+  s.lineTo(...P(x1 - tr, y0));
+  s.quadraticCurveTo(...P(x1, y0), ...P(x1, y0 + tr));
+  s.lineTo(...P(x1, y1 - br));
+  s.quadraticCurveTo(...P(x1, y1), ...P(x1 - br, y1));
+  s.lineTo(...P(x0 + bl, y1));
+  s.quadraticCurveTo(...P(x0, y1), ...P(x0, y1 - bl));
+  s.lineTo(...P(x0, y0 + tl));
+  s.quadraticCurveTo(...P(x0, y0), ...P(x0 + tl, y0));
+  return s;
+}
+/** 바디: 왼쪽 아래(트랜스포트 키 자리)를 L자로 깎아 낸 판. 키가 그 자리를 채운다 (원점 = 기기 중심) */
+function bodyL(b: number) {
+  const ox = DW / 2;
+  const oy = DH / 2;
+  const P = (x: number, y: number) => [x - ox, -(y - oy)] as const;
+  const x0 = 67 + b, y0 = 92 + b, x1 = 843 - b, y1 = 1210 - b;
+  const nx = 650 + b, ny = 929 + b; // 키 자리(틈 포함) 경계
+  const R = 26 - b, r = 3;
+  const s = new THREE.Shape();
+  s.moveTo(...P(x0 + R, y0));
+  s.lineTo(...P(x1 - R, y0));
+  s.quadraticCurveTo(...P(x1, y0), ...P(x1, y0 + R));
+  s.lineTo(...P(x1, y1 - R));
+  s.quadraticCurveTo(...P(x1, y1), ...P(x1 - R, y1));
+  s.lineTo(...P(nx + r, y1));
+  s.quadraticCurveTo(...P(nx, y1), ...P(nx, y1 - r));
+  s.lineTo(...P(nx, ny + r));
+  s.quadraticCurveTo(...P(nx, ny), ...P(nx - r, ny));
+  s.lineTo(...P(x0 + r, ny));
+  s.quadraticCurveTo(...P(x0, ny), ...P(x0, ny - r));
+  s.lineTo(...P(x0, y0 + R));
+  s.quadraticCurveTo(...P(x0, y0), ...P(x0 + R, y0));
+  return s;
+}
+function extrude(shape: THREE.Shape, depth: number, bevel: number, segs = 6) {
+  const g = new THREE.ExtrudeGeometry(shape, {
+    depth: depth - bevel * 2,
+    bevelEnabled: true,
+    bevelThickness: bevel,
+    bevelSize: bevel,
+    bevelSegments: segs,
+    curveSegments: 18,
+  });
+  g.translate(0, 0, -(depth - bevel));
+  return g;
+}
+
 /** 앞면이 z=0에 오는 모서리 둥근 판. bevel만큼 모서리가 깎인다 */
 function slab(w: number, h: number, r: number, depth: number, bevel = 2, segs = 4) {
   const g = new THREE.ExtrudeGeometry(roundRect(w - bevel * 2, h - bevel * 2, Math.max(0.5, r - bevel)), {
@@ -75,24 +128,30 @@ function canvasTex(w: number, h: number, draw: (c: CanvasRenderingContext2D) => 
   t.anisotropy = 8;
   return t;
 }
-/** 가로 결의 브러시드 알루미늄 (거칠기 지도) */
-const brushed = () =>
-  canvasTex(
-    512,
-    512,
+/** 비드블라스트 알루미늄의 미세 입자 — 무광의 거친 결 (거칠기·범프 지도로 같이 쓴다) */
+const grain = () => {
+  const N = 512;
+  const t = canvasTex(
+    N,
+    N,
     (c) => {
-      c.fillStyle = "#8a8a8a";
-      c.fillRect(0, 0, 512, 512);
-      for (let i = 0; i < 3200; i++) {
-        const y = Math.random() * 512;
-        const v = 70 + Math.random() * 120;
-        c.fillStyle = `rgb(${v},${v},${v})`;
-        c.globalAlpha = 0.35;
-        c.fillRect(Math.random() * 512 - 200, y, 200 + Math.random() * 400, 1);
+      const img = c.createImageData(N, N);
+      for (let i = 0; i < N * N; i++) {
+        // 거칠기 지도는 재질 거칠기에 곱해진다 → 1 가까이(0.8~1)로 두어 무광을 유지
+        const v = 228 + (Math.random() - 0.5) * 54;
+        img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v;
+        img.data[i * 4 + 3] = 255;
       }
+      c.putImageData(img, 0, 0);
+      // 입자가 한 픽셀로 반짝이지 않게 아주 살짝 뭉갠다
+      c.filter = "blur(0.6px)";
+      c.drawImage(c.canvas, 0, 0);
     },
     false,
   );
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+};
 /** 스핀 가공된 원판의 동심원 결 */
 const rings = () =>
   canvasTex(
@@ -321,47 +380,66 @@ function Model({ live, deviceEl, onReady }: Props) {
 
   // 재질
   const mat = useMemo(() => {
-    const rough = brushed();
-    rough.wrapS = rough.wrapT = THREE.RepeatWrapping;
-    rough.repeat.set(2, 3);
-    // 양극산화 알루미늄: 금속성을 절반쯤으로 — 정면에서 봐도 밝은 은색으로 남는다
-    const alu = new THREE.MeshStandardMaterial({ color: "#cdcdca", metalness: 0.72, roughness: 0.5, roughnessMap: rough, envMapIntensity: 1.05 });
-    const aluBright = new THREE.MeshStandardMaterial({ color: "#d8d8d5", metalness: 0.72, roughness: 0.32, envMapIntensity: 1.1 });
-    // 키 윗면: 바디보다 살짝 밝고 무광
-    const keyMat = new THREE.MeshStandardMaterial({ color: "#d6d6d3", metalness: 0.6, roughness: 0.5, roughnessMap: rough, envMapIntensity: 1 });
+    // 원본 TP-7: 비드블라스트 양극산화 알루미늄 — 무광, 살짝 거칠고 따뜻한 회색. 반사는 넓고 흐리게.
+    // (Extrude 기하의 UV는 u 단위 좌표라, 입자 지도는 1/180로 늘려야 180u마다 한 번 반복된다)
+    const g1 = grain();
+    g1.repeat.set(1 / 180, 1 / 180);
+    const g2 = grain(); // 원통·구 등 0~1 UV용
+    g2.repeat.set(3, 3);
+    const satin = (map: THREE.Texture, color: string, rough = 0.74) =>
+      new THREE.MeshStandardMaterial({ color, metalness: 0.5, roughness: rough, roughnessMap: map, bumpMap: map, bumpScale: 0.35, envMapIntensity: 0.8 });
+    const alu = satin(g1, "#acaca8");
+    const aluBright = satin(g2, "#b3b3af", 0.66);
+    // 키는 바디와 같은 재질 — 틈과 모서리로만 구분된다
+    const keyMat = satin(g1, "#afafab", 0.72);
     const ringTex = rings();
+    // 휠: 같은 무광 알루미늄에 스핀 결 — 반사는 흐린 원뿔 빛띠(무드라이트)로만 남긴다
     const wheelMat = new THREE.MeshPhysicalMaterial({
-      color: "#d2d2cf",
-      metalness: 0.9,
-      roughness: 0.3,
-      anisotropy: 0.9,
+      color: "#a2a29e",
+      metalness: 0.6,
+      roughness: 0.5,
+      anisotropy: 0.75,
       anisotropyMap: spinDir(),
       bumpMap: ringTex,
-      bumpScale: 0.35,
-      envMapIntensity: 1.2,
+      bumpScale: 0.22,
+      envMapIntensity: 0.85,
     });
-    const hubMat = new THREE.MeshStandardMaterial({ map: hubTop(), metalness: 0.6, roughness: 0.18, envMapIntensity: 1.25 });
+    const hubMat = new THREE.MeshStandardMaterial({ map: hubTop(), color: "#c4c4c0", metalness: 0.5, roughness: 0.42, envMapIntensity: 0.9 });
     const dark = new THREE.MeshStandardMaterial({ color: "#2a2a29", metalness: 0.2, roughness: 0.75 });
     const groove = new THREE.MeshStandardMaterial({ color: "#7f7f7d", metalness: 0.6, roughness: 0.5 });
     const glass = new THREE.MeshPhysicalMaterial({ color: "#050505", metalness: 0, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.05 });
     const ink = new THREE.MeshStandardMaterial({ color: "#1d1d1d", roughness: 0.6 });
-    const orange = new THREE.MeshPhysicalMaterial({ color: "#ff4d12", roughness: 0.4, clearcoat: 0.7, clearcoatRoughness: 0.2, emissive: "#ff3a00", emissiveIntensity: 0.15 });
+    const orange = new THREE.MeshStandardMaterial({ color: "#ff4d12", roughness: 0.62, metalness: 0, emissive: "#ff3a00", emissiveIntensity: 0.12 });
     const knob = new THREE.MeshStandardMaterial({
-      color: "#bdbdbb",
-      metalness: 0.95,
-      roughness: 0.32,
+      color: "#9d9d9a",
+      metalness: 0.65,
+      roughness: 0.52,
       normalMap: knurl(),
-      normalScale: new THREE.Vector2(1.4, 1.4),
-      envMapIntensity: 1.25,
+      normalScale: new THREE.Vector2(1.3, 1.3),
+      envMapIntensity: 0.9,
     });
-    const knobCap = new THREE.MeshStandardMaterial({ color: "#c9c9c7", metalness: 0.95, roughness: 0.22, envMapIntensity: 1.3 });
+    const knobCap = satin(g2, "#a8a8a5", 0.6);
+    // 틈·홈 안쪽의 어둠 (빛이 거의 안 드는 곳)
+    const cavity = new THREE.MeshStandardMaterial({ color: "#3a3a38", metalness: 0.1, roughness: 0.9 });
+    // 휠 둘레에 지는 흐린 음영 (반지 모양 그러데이션)
+    const aoRing = new THREE.MeshBasicMaterial({
+      map: canvasTex(512, 512, (c) => {
+        const g = c.createRadialGradient(256, 256, 236, 256, 256, 256);
+        g.addColorStop(0, "rgba(0,0,0,0.28)");
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        c.fillStyle = g;
+        c.fillRect(0, 0, 512, 512);
+      }),
+      transparent: true,
+      depthWrite: false,
+    });
     const print = new THREE.MeshBasicMaterial({ map: bodyPrint(), transparent: true, depthWrite: false });
     const accent = new THREE.MeshBasicMaterial({ color: "#ff5a1f" });
     const led = new THREE.MeshBasicMaterial({ color: "#9a9a98" });
     const mLabel = new THREE.MeshBasicMaterial({ map: keyLabel("M", "#ffffff"), transparent: true, depthWrite: false });
     const plusLabel = new THREE.MeshBasicMaterial({ map: keyLabel("+", "#6d6d6b", 0.5), transparent: true, depthWrite: false });
     const minusLabel = new THREE.MeshBasicMaterial({ map: keyLabel("−", "#6d6d6b", 0.5), transparent: true, depthWrite: false });
-    return { alu, aluBright, keyMat, wheelMat, hubMat, dark, groove, glass, ink, orange, knob, knobCap, print, accent, led, mLabel, plusLabel, minusLabel };
+    return { alu, aluBright, keyMat, wheelMat, hubMat, dark, groove, glass, ink, orange, knob, knobCap, cavity, aoRing, print, accent, led, mLabel, plusLabel, minusLabel };
   }, []);
 
   const wheelPrintMat = useMemo(() => new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false }), []);
@@ -473,7 +551,7 @@ function Model({ live, deviceEl, onReady }: Props) {
     if (lever.current) lever.current.position.y = 54 * l;
     if (leverBar.current) leverBar.current.rotation.z = (3 * l * Math.PI) / 180;
 
-    // 키: 누르는 중 14u, 걸쇠(재생·녹음) 9u 들어가고, 놓으면 스프링으로 튕기며 돌아온다
+    // 키: 바디와 같은 면에서 누르는 중 9u, 걸쇠(재생·녹음) 5u 안으로 들어가고, 놓으면 스프링으로 튕기며 돌아온다
     const pressed = live.current.pressed;
     const k = keys.current;
     let springing = false;
@@ -489,9 +567,9 @@ function Model({ live, deviceEl, onReady }: Props) {
       else springing = true;
       apply(s.z);
     };
-    spring("rec", pressed === "rec" ? -14 : snap.rec ? -9 : 0, (z) => k.rec && (k.rec.position.z = z));
-    spring("play", pressed === "play" ? -14 : snap.playing ? -9 : 0, (z) => k.play && (k.play.position.z = z));
-    spring("stop", pressed === "stop" ? -14 : 0, (z) => k.stop && (k.stop.position.z = z));
+    spring("rec", pressed === "rec" ? -9 : snap.rec ? -5 : 0, (z) => k.rec && (k.rec.position.z = z));
+    spring("play", pressed === "play" ? -9 : snap.playing ? -5 : 0, (z) => k.play && (k.play.position.z = z));
+    spring("stop", pressed === "stop" ? -9 : 0, (z) => k.stop && (k.stop.position.z = z));
     spring("menu", pressed === "menu" ? -5 : 0, (z) => k.menu && (k.menu.position.z = z));
     spring("plus", pressed === "plus" ? -6 : 0, (z) => k.plus && (k.plus.position.z = z));
     spring("minus", pressed === "minus" ? -6 : 0, (z) => k.minus && (k.minus.position.z = z));
@@ -512,11 +590,14 @@ function Model({ live, deviceEl, onReady }: Props) {
   // 기하 (한 번만)
   const geo = useMemo(() => {
     return {
-      body: slab(776, 1118, 26, DEPTH, 12, 8),
-      // 트랜스포트 키: 바디 위로 30u 솟은 두꺼운 판, 모서리 5u 모따기
-      key: slab(189, 276, 6, 48, 5, 5),
-      keyStop: slab(190, 276, 6, 48, 5, 5),
-      transportBase: new THREE.PlaneGeometry(578, 276),
+      body: extrude(bodyL(8), DEPTH, 8, 8),
+      // 트랜스포트 키: 바디와 같은 두께·같은 재질의 판이 L자 자리를 채운다 (틈 5u, 위 모서리 3u, 바깥 모서리는 바디와 같은 26u)
+      keyRec: extrude(rectPath(67 + 2, 934 + 2, 256 - 2, 1210 - 2, [3, 3, 3, 24], 67 + 94.5, 934 + 138), DEPTH, 2, 4),
+      keyPlay: extrude(rectPath(261 + 2, 934 + 2, 450 - 2, 1210 - 2, [3, 3, 3, 3], 261 + 94.5, 934 + 138), DEPTH, 2, 4),
+      keyStop: extrude(rectPath(455 + 2, 934 + 2, 645 - 2, 1210 - 2, [3, 3, 3, 3], 455 + 95, 934 + 138), DEPTH, 2, 4),
+      // 틈 뒤 어둠: 바깥 둥근 모서리 밖으로 비어져 나오지 않게 안쪽으로 줄인다
+      keyWell: new THREE.BoxGeometry(573, 274, DEPTH - 10),
+      aoRing: new THREE.PlaneGeometry(780, 780),
       wheel: new THREE.CylinderGeometry(359, 359, 10, 160),
       wheelRim: new THREE.TorusGeometry(357, 2.4, 12, 160),
       groove: new THREE.CylinderGeometry(364, 364, 2, 160),
@@ -586,9 +667,9 @@ function Model({ live, deviceEl, onReady }: Props) {
 
   return (
     <>
-      <hemisphereLight args={["#ffffff", "#8a8a88", 0.45]} />
+      <hemisphereLight args={["#fffdf8", "#6f6e6a", 0.5]} />
       {/* 왼쪽 위에서 넓게 비추는 조명 — 판 위에 은은한 밝기 차이를 만든다 */}
-      <spotLight position={[-700, 1100, 900]} angle={0.75} penumbra={1} decay={0} intensity={0.9} />
+      <spotLight position={[-700, 1100, 900]} angle={0.8} penumbra={1} decay={0} intensity={0.75} />
       <directionalLight ref={light} intensity={0.75} position={[-500, 700, 1400]} />
       {/* 오른쪽 아래에서 모서리를 짚는 약한 역광 — 두께가 읽히게 */}
       <directionalLight intensity={0.35} position={[900, -300, 500]} />
@@ -598,8 +679,8 @@ function Model({ live, deviceEl, onReady }: Props) {
         castShadow
         shadow-mapSize={[1024, 1024]}
         shadow-bias={-0.0004}
-        shadow-radius={10}
-        shadow-blurSamples={10}
+        shadow-radius={16}
+        shadow-blurSamples={12}
         shadow-camera-left={-900}
         shadow-camera-right={900}
         shadow-camera-top={1000}
@@ -614,7 +695,7 @@ function Model({ live, deviceEl, onReady }: Props) {
 
       <group ref={root}>
         {/* 바디 */}
-        <mesh geometry={geo.body} material={mat.alu} position={[X(455), Y(651), 0]} castShadow receiveShadow />
+        <mesh geometry={geo.body} material={mat.alu} castShadow receiveShadow />
         <mesh geometry={geo.print} material={mat.print} position={[0, 0, 0.25]} />
 
         {/* 안테나 */}
@@ -651,7 +732,8 @@ function Model({ live, deviceEl, onReady }: Props) {
         </group>
 
         {/* 조그 휠 */}
-        <mesh geometry={geo.groove} material={mat.dark} position={[X(W), Y(WY), 0.5]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh geometry={geo.groove} material={mat.cavity} position={[X(W), Y(WY), 0.5]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh geometry={geo.aoRing} material={mat.aoRing} position={[X(W), Y(WY), 0.4]} />
         <group ref={wheel} position={[X(W), Y(WY), 0]}>
           <mesh geometry={geo.wheel} material={mat.wheelMat} position={[0, 0, 3]} rotation={[Math.PI / 2, 0, 0]} castShadow receiveShadow />
           <mesh geometry={geo.wheelRim} material={mat.aluBright} position={[0, 0, 7.6]} />
@@ -684,14 +766,15 @@ function Model({ live, deviceEl, onReady }: Props) {
         </group>
 
         {/* 트랜스포트 키 */}
-        <mesh geometry={geo.transportBase} material={mat.dark} position={[X(67 + 289), Y(1072), 0.3]} />
+        {/* 키 사이 틈 안쪽의 어두운 공간 */}
+        <mesh geometry={geo.keyWell} material={mat.cavity} position={[X(361.5), Y(1067), -(DEPTH - 10) / 2 - 5]} />
         <mesh geometry={geo.recTab} material={mat.aluBright} position={[X(57), Y(1046), MID + 15]} castShadow />
         {(["rec", "play", "stop"] as const).map((id, n) => (
           <group key={id} ref={(o) => void (keys.current[id] = o)}>
-            <mesh geometry={id === "stop" ? geo.keyStop : geo.key} material={mat.keyMat} position={[X(keyX[n]), Y(keyY), 30]} castShadow receiveShadow />
-            {id === "rec" && <mesh geometry={geo.dot} material={mat.orange} position={[X(keyX[n]), Y(symY), 30.3]} />}
-            {id === "play" && <mesh geometry={geo.tri} material={mat.ink} position={[X(keyX[n]) + 1.5, Y(symY), 30.3]} />}
-            {id === "stop" && <mesh geometry={geo.square} material={mat.ink} position={[X(keyX[n]), Y(symY), 30.3]} />}
+            <mesh geometry={id === "rec" ? geo.keyRec : id === "play" ? geo.keyPlay : geo.keyStop} material={mat.keyMat} position={[X(keyX[n]), Y(keyY), 0]} castShadow receiveShadow />
+            {id === "rec" && <mesh geometry={geo.dot} material={mat.orange} position={[X(keyX[n]), Y(symY), 0.3]} />}
+            {id === "play" && <mesh geometry={geo.tri} material={mat.ink} position={[X(keyX[n]) + 1.5, Y(symY), 0.3]} />}
+            {id === "stop" && <mesh geometry={geo.square} material={mat.ink} position={[X(keyX[n]), Y(symY), 0.3]} />}
           </group>
         ))}
 
@@ -730,7 +813,7 @@ export default function Device3D(props: Props) {
       onCreated={({ gl }) => {
         // 색을 덜 바래게: 중립 톤 매핑, 노출 살짝 낮게
         gl.toneMapping = THREE.NeutralToneMapping;
-        gl.toneMappingExposure = 1;
+        gl.toneMappingExposure = 0.86;
         gl.shadowMap.autoUpdate = false;
       }}
       dpr={[1, typeof window !== "undefined" && window.matchMedia("(hover: none)").matches ? 1.75 : 2]}
