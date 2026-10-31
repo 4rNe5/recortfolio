@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { scramble } from "@/lib/scramble";
 import { tape } from "@/lib/tape";
 
-/** 테이프 엔진 시작 + 챕터 머리 붙음 감지 */
+/** 테이프 엔진 시작 + 챕터 머리 붙음 감지 + 챕터 등장·제목 섞임 연출 */
 export default function Boot() {
   useEffect(() => tape.start(), []);
 
@@ -26,6 +27,42 @@ export default function Boot() {
     });
     document.querySelectorAll("[data-sentinel]").forEach((el) => io.observe(el));
     return () => io.disconnect();
+  }, []);
+
+  // 챕터 요소는 처음 화면에 들어올 때 한 번 떠오른다 (스크롤 위치에 묶이지 않음 — 다시 숨지 않는다)
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLElement>("[data-reveal]");
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+      els.forEach((el) => el.setAttribute("data-shown", ""));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          e.target.setAttribute("data-shown", "");
+          io.unobserve(e.target);
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  // 새 트랙에 들어서면 그 챕터 제목이 OLED처럼 한 번 섞였다가 맞춰진다 (화면에 보일 때만)
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const on = (e: Event) => {
+      const { i } = (e as CustomEvent<{ i: number }>).detail;
+      const el = document.querySelector<HTMLElement>(`[data-track="${i}"] [data-scramble]`);
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight) return;
+      scramble(el);
+    };
+    window.addEventListener("tape:track", on);
+    return () => window.removeEventListener("tape:track", on);
   }, []);
 
   return null;

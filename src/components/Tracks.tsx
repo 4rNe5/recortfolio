@@ -8,6 +8,9 @@ import s from "./Tracks.module.css";
 
 const num = (i: number) => String(i).padStart(2, "0");
 const vars = (t: Track) => ({ "--c": t.color, "--ci": t.ink }) as CSSProperties;
+/** 처음 화면에 들어올 때 한 번 떠오른다 (Boot의 IntersectionObserver). ms: 같은 묶음 안에서의 시차 */
+const rv = (kind: "up" | "title" | "media" = "up", ms = 0) =>
+  ({ "data-reveal": kind, style: { ["--rd" as string]: `${ms}ms` } as CSSProperties }) as const;
 const mono = (t: Track) => (t.color === "#1f1f1f" ? { "data-mono": true } : {});
 
 /** 챕터 머리: 트랙 번호 줄 + 파형. 모바일에선 챕터를 읽는 동안 화면 위에 붙어 있다. */
@@ -44,15 +47,15 @@ function Intro({ i }: { i: number }) {
       <Bar i={i} right="소개" title="Park Jun Hyeon" />
 
       <ul className={s.principles}>
-        {profile.principles.map((p) => (
-          <li key={p.t}>
+        {profile.principles.map((p, k) => (
+          <li key={p.t} {...rv("up", k * 80)}>
             <h2>{p.t}</h2>
             <p>{p.d}</p>
           </li>
         ))}
       </ul>
 
-      <div className={s.credits}>
+      <div className={s.credits} {...rv("up", 120)}>
         <figure className={s.photo}>
           <Image src={profile.photo} alt={`${profile.nameKo} 프로필 사진`} width={413} height={531} priority />
         </figure>
@@ -74,13 +77,13 @@ function Media({ t }: { t: ProjectTrack }) {
   if (t.media.kind === "mockup") {
     const m = t.media.shot;
     return (
-      <figure className={s.mockup}>
+      <figure className={s.mockup} {...rv("media", 220)}>
         <Image src={m.src} alt={m.alt} width={m.width} height={m.height} sizes="(max-width: 1100px) 92vw, 46vw" />
       </figure>
     );
   }
   return (
-    <figure className={s.screens}>
+    <figure className={s.screens} {...rv("media", 220)}>
       {t.media.shots.map((m, k) => (
         <Image key={m.src} src={m.src} alt={m.alt} width={m.width} height={m.height} sizes="(max-width: 1100px) 40vw, 16vw" style={{ ["--k" as string]: k }} />
       ))}
@@ -97,13 +100,17 @@ function Project({ t, i }: { t: ProjectTrack; i: number }) {
         <span className={s.icon} data-icon={i} data-logo={t.id === "sfoodgo" || undefined}>
           <Image src={t.icon} alt="" width={96} height={96} loading="eager" />
         </span>
-        <h2 className={s.title}>{t.title}</h2>
+        <h2 className={s.title} data-scramble {...rv("title")}>
+          <span>{t.title}</span>
+        </h2>
       </div>
-      <p className={s.tagline}>{t.tagline}</p>
+      <p className={s.tagline} {...rv("up", 80)}>
+        {t.tagline}
+      </p>
 
       <dl className={s.facts} style={{ ["--n" as string]: t.facts.length }}>
-        {t.facts.map((f) => (
-          <div key={f.v + f.l}>
+        {t.facts.map((f, k) => (
+          <div key={f.v + f.l} {...rv("up", 160 + k * 70)}>
             <dt>{f.v}</dt>
             <dd>{f.l}</dd>
           </div>
@@ -112,7 +119,7 @@ function Project({ t, i }: { t: ProjectTrack; i: number }) {
 
       <Media t={t} />
 
-      <div className={s.body}>
+      <div className={s.body} {...rv("up", 80)}>
         <ul className={s.did}>
           {t.did.map((d) => (
             <li key={d}>{d}</li>
@@ -149,11 +156,15 @@ function Awards({ i }: { i: number }) {
   return (
     <section id={t.id} data-track={i} className={`${s.track} ${s.awards}`} style={vars(t)}>
       <Bar i={i} right="2023 – 2024" title="Awards" />
-      <h2 className={s.title}>Awards</h2>
-      <p className={s.tagline}>해커톤과 공모전에서 아홉 번 수상했고, 그중 세 번은 1등이었습니다.</p>
+      <h2 className={s.title} data-scramble {...rv("title")}>
+        <span>Awards</span>
+      </h2>
+      <p className={s.tagline} {...rv("up", 80)}>
+        해커톤과 공모전에서 아홉 번 수상했고, 그중 세 번은 1등이었습니다.
+      </p>
       <ol className={s.awardList}>
-        {awards.map((a) => (
-          <li key={a.event} className={s.award} data-top={a.top || undefined}>
+        {awards.map((a, k) => (
+          <li key={a.event} className={s.award} data-top={a.top || undefined} {...rv("up", 140 + Math.min(k, 5) * 50)}>
             <span className={s.date}>{a.date}</span>
             <span className={s.event}>
               {a.event}
@@ -172,11 +183,15 @@ function Stage({ i }: { i: number }) {
   return (
     <section id={t.id} data-track={i} className={`${s.track} ${s.stage}`} style={vars(t)}>
       <Bar i={i} right="발표와 전시" title="On stage" />
-      <h2 className={s.title}>On stage</h2>
-      <p className={s.tagline}>만든 것을 직접 설명하는 자리에 자주 섰습니다.</p>
+      <h2 className={s.title} data-scramble {...rv("title")}>
+        <span>On stage</span>
+      </h2>
+      <p className={s.tagline} {...rv("up", 80)}>
+        만든 것을 직접 설명하는 자리에 자주 섰습니다.
+      </p>
       <ul className={s.stageList}>
-        {stage.map((a) => (
-          <li key={a.title} className={s.stageItem}>
+        {stage.map((a, k) => (
+          <li key={a.title} className={s.stageItem} {...rv("up", 140 + (k % 2) * 90)}>
             {a.photo && (
               <div className={s.stagePhoto}>
                 <Image
@@ -208,11 +223,13 @@ function Contact({ i }: { i: number }) {
   return (
     <section id={t.id} data-track={i} className={`${s.track} ${s.contact}`} style={vars(t)}>
       <Bar i={i} right="Side A 끝" title="연락하기" />
-      <p className={s.tagline}>다음 트랙을 같이 만들 분을 기다립니다.</p>
-      <a className={s.mail} href={`mailto:${profile.email}`}>
+      <p className={s.tagline} {...rv("up")}>
+        다음 트랙을 같이 만들 분을 기다립니다.
+      </p>
+      <a className={s.mail} href={`mailto:${profile.email}`} {...rv("title", 80)}>
         {profile.email}
       </a>
-      <ul className={s.socials} aria-label="다른 채널">
+      <ul className={s.socials} aria-label="다른 채널" {...rv("up", 180)}>
         {profile.socials.map((x) => (
           <li key={x.name}>
             <a href={x.href} target="_blank" rel="noreferrer">

@@ -75,6 +75,9 @@ class Tape {
 
   private playPos = 0;
   private spring: Spring | null = null;
+  /** 장면 전환으로 가는 중인 트랙 (-1: 없음) */
+  private pending = -1;
+  private sceneToken = 0;
   /** 테이프 모터의 실제 속도(px/s) — 재생·정지 때 서서히 붙고 풀린다 */
   private motor = 0;
   /** 부호 있는 스크롤 속도(px/s) */
@@ -299,6 +302,7 @@ class Tape {
       }
     }
     if (i !== this.snap.track && this.tops.length) this.changeTrack(i);
+    if (this.pending === i) this.pending = -1;
 
     this.frame = {
       scrollY: y,
@@ -319,6 +323,8 @@ class Tape {
     this.set({ track: i, rec: leftContact ? false : this.snap.rec });
     this.refreshAccent();
     if (this.snap.sound) sound.chime(i);
+    // 트랙이 바뀌는 순간을 연출하는 쪽(제목 섞임)에 알린다
+    window.dispatchEvent(new CustomEvent("tape:track", { detail: { i } }));
   }
 
   private refreshAccent() {
@@ -346,6 +352,11 @@ class Tape {
 
   goTo(i: number, opts: { silent?: boolean } = {}) {
     const n = clamp(i, 0, this.tops.length - 1);
+    // 데스크톱에서 다른 챕터로 갈 때는 중간을 훑지 않고 장면을 바꾼다 (기기는 그대로)
+    if (n !== this.base() && window.matchMedia("(min-width: 1100px)").matches && this.scene(n)) {
+      if (!opts.silent) this.click(1.1);
+      return;
+    }
     const to = this.trackTop(n);
     const from = window.scrollY;
     const dist = Math.abs(to - from);
@@ -380,7 +391,47 @@ class Tape {
 
   /** 이동 중이면 가고 있는 트랙을 기준으로 — 연타하면 그만큼 더 간다 */
   private base() {
-    return this.spring ? this.spring.i : this.snap.track;
+    if (this.spring) return this.spring.i;
+    if (this.pending >= 0) return this.pending;
+    return this.snap.track;
+  }
+
+  /**
+   * 장면 전환: 지금 화면은 진행 방향으로 살짝 밀리며 빠지고, 다음 챕터가 들어온다.
+   * 왼쪽 기기는 고정. 들어온 챕터의 보이는 요소는 등장 연출을 다시 한 번 재생한다.
+   * hooks — 재생목록이 표지 비행을 끼워 넣는 자리. View Transition을 못 쓰면 false.
+   */
+  scene(i: number, hooks: { before?: () => void; inside?: () => void; after?: () => void } = {}) {
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => VT };
+    if (!doc.startViewTransition || this.reduced) return false;
+    const n = clamp(i, 0, this.tops.length - 1);
+    const root = document.documentElement;
+    const token = ++this.sceneToken;
+    root.classList.remove("vt-fwd", "vt-back");
+    root.classList.add("vt-scene", n >= this.base() ? "vt-fwd" : "vt-back");
+    hooks.before?.();
+    this.pending = n;
+    let replay: HTMLElement[] = [];
+    const vt = doc.startViewTransition(() => {
+      hooks.inside?.();
+      this.jumpTo(n);
+      const h = window.innerHeight;
+      replay = Array.from(this.sections[n]?.querySelectorAll<HTMLElement>("[data-reveal]") ?? []).filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top < h && r.bottom > 0;
+      });
+      replay.forEach((el) => el.removeAttribute("data-shown"));
+    });
+    vt.ready
+      .then(() => requestAnimationFrame(() => replay.forEach((el) => el.setAttribute("data-shown", ""))))
+      .catch(() => replay.forEach((el) => el.setAttribute("data-shown", "")));
+    vt.finished.finally(() => {
+      if (token !== this.sceneToken) return;
+      root.classList.remove("vt-scene", "vt-fwd", "vt-back");
+      if (this.pending === n) this.pending = -1;
+      hooks.after?.();
+    });
+    return true;
   }
 
   next() {

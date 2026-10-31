@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Keyb
 import { flushSync } from "react-dom";
 import { tracks, type Track } from "@/content/portfolio";
 import * as sound from "@/lib/sound";
-import { tape, type Frame, type VT } from "@/lib/tape";
+import { tape, type Frame } from "@/lib/tape";
 import { formatDuration, useFrame, useTape } from "@/lib/useTape";
 import s from "./TrackMenu.module.css";
 
@@ -98,14 +98,7 @@ export default function TrackMenu() {
   useFrame(onFrame);
 
   const choose = (i: number) => {
-    const doc = document as Document & { startViewTransition?: (cb: () => void) => VT };
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!doc.startViewTransition || reduced) {
-      tape.goTo(i);
-      tape.toggleMenu(false);
-      return;
-    }
-    // 고른 표지가 날아가 챕터 아이콘 자리에 안착한다 (프로젝트 트랙만 — 나머지는 장면 전환)
+    // 고른 표지가 날아가 챕터 아이콘 자리에 안착하고(프로젝트 트랙만), 나머지는 장면 전환
     const root = document.documentElement;
     const player = playerRef.current;
     const cover = listRef.current?.querySelector<HTMLElement>(`#trk-${i} [data-cover]`);
@@ -116,20 +109,30 @@ export default function TrackMenu() {
       el.style.viewTransitionName = n;
       named.push(el);
     };
-    name(player, "menu");
-    if (icon) name(cover, "cover");
-    root.classList.add("vt-pick");
-    const vt = doc.startViewTransition(() => {
+    const clear = () => {
       named.forEach((el) => (el.style.viewTransitionName = ""));
       named.length = 0;
-      flushSync(() => tape.toggleMenu(false));
-      tape.jumpTo(i);
-      if (icon) name(icon, "cover");
+    };
+    const ok = tape.scene(i, {
+      before: () => {
+        root.classList.add("vt-pick");
+        name(player, "menu");
+        if (icon) name(cover, "cover");
+      },
+      inside: () => {
+        clear();
+        flushSync(() => tape.toggleMenu(false));
+        if (icon) name(icon, "cover");
+      },
+      after: () => {
+        clear();
+        root.classList.remove("vt-pick");
+      },
     });
-    vt.finished.finally(() => {
-      named.forEach((el) => (el.style.viewTransitionName = ""));
-      root.classList.remove("vt-pick");
-    });
+    if (!ok) {
+      tape.goTo(i);
+      tape.toggleMenu(false);
+    }
   };
   const move = (i: number) => {
     const n = Math.max(0, Math.min(tracks.length - 1, i));

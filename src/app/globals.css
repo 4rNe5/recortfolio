@@ -115,6 +115,84 @@ kbd {
   white-space: nowrap;
 }
 
+/* ---------- 챕터 제목 섞임 (src/lib/scramble.ts) ---------- */
+[data-scramble] {
+  position: relative;
+}
+/* 겹친 층은 제목 칸 밖으로 못 나간다 — 위아래만 글자 꼬리(j, g) 몫으로 0.2em 여유 */
+[data-scramble] > .scr {
+  position: absolute;
+  top: -0.2em;
+  bottom: -0.2em;
+  left: 0;
+  right: 0;
+  padding-top: 0.2em;
+  /* 위아래는 칸에서 자르고, 좌우는 마지막 글자 꼬리만큼(0.4em) 허용 */
+  clip-path: inset(0 -0.4em);
+  pointer-events: none;
+}
+[data-scrambling] > :first-child {
+  opacity: 0;
+}
+
+/* ---------- 챕터 등장: 처음 화면에 들어올 때 한 번 (Boot.tsx) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-js] [data-reveal] {
+    transition:
+      opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) var(--rd, 0ms),
+      transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--rd, 0ms);
+  }
+  html[data-js] [data-reveal]:not([data-shown]) {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: none;
+  }
+  html[data-js] [data-reveal="title"]:not([data-shown]) {
+    transform: translateY(0.3em);
+  }
+  html[data-js] [data-reveal="media"]:not([data-shown]) {
+    transform: translateY(40px) scale(0.985);
+  }
+}
+
+/* ---------- 장면 전환: 데스크톱에서 다른 챕터로 갈 때 (tape.scene) ---------- */
+html.vt-fwd {
+  --vt-dir: 1;
+}
+html.vt-back {
+  --vt-dir: -1;
+}
+/* 왼쪽 기기는 장면 밖 — 움직이지 않고 바로 새 상태 */
+html.vt-scene [data-deck] {
+  view-transition-name: deck;
+}
+html.vt-scene::view-transition-group(deck),
+html.vt-scene::view-transition-new(deck) {
+  animation: none;
+}
+html.vt-scene::view-transition-old(deck) {
+  display: none;
+}
+/* 지금 장면은 진행 방향으로 살짝 밀리며 빠지고, 새 장면은 제자리에서 밝아진다 (요소들은 등장 연출로 떠오름) */
+/* 두 장면이 겹쳐 비치는 시간을 0.06초 이하로 — 겹치면 글자가 이중으로 보인다 */
+html.vt-scene::view-transition-old(root) {
+  animation: vt-scene-out 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+html.vt-scene::view-transition-new(root) {
+  animation: vt-scene-in 0.32s 0.14s cubic-bezier(0, 0, 0.2, 1) both;
+}
+@keyframes vt-scene-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--vt-dir, 1) * -32px));
+  }
+}
+@keyframes vt-scene-in {
+  from {
+    opacity: 0;
+  }
+}
+
 /* ---------- 화면 전환 (View Transitions) ---------- */
 /* 겹쳐 보이는 시간을 줄인다: 이전 장면은 빨리 빠지고, 새 장면은 살짝 늦게 들어온다 */
 ::view-transition-old(root) {

@@ -11,7 +11,7 @@ export default function Home() {
       <Boot />
       <div className={styles.shell}>
         <aside className={styles.deck} id="deck">
-          <div className={styles.deckInner}>
+          <div className={styles.deckInner} data-deck>
             <Recorder />
           </div>
         </aside>
