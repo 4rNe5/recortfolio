@@ -2,6 +2,7 @@
    좌표는 레퍼런스 사진에서 측정. 빛은 포인터를 따라 움직인다 (--lx, --ly, --la). */
 
 .wrap {
+  position: relative;
   container-type: inline-size;
   width: 100%;
   margin: 0;
@@ -1073,4 +1074,84 @@
   .oledLine > span {
     animation: none !important;
   }
+}
+
+/* ---------- 3D 녹음기 (Device3D.tsx) ----------
+   3D가 준비되면(.device[data-3d]) CSS로 그린 겉모습만 숨기고, 조작 영역·포커스 테두리·OLED 글자는 남긴다. */
+.stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  aspect-ratio: 853 / 1370;
+  pointer-events: none;
+  z-index: 0;
+}
+.stageCanvas {
+  position: absolute;
+}
+/* 준비되기 전엔 보이지 않고, 준비되면 CSS 녹음기 위로 서서히 나타났다가 아래로 내려간다 */
+.stage[data-phase="off"] {
+  opacity: 0;
+}
+.stage[data-phase="fading"] {
+  z-index: 2;
+  animation: stageIn 0.45s ease-out both;
+}
+@keyframes stageIn {
+  from {
+    opacity: 0;
+  }
+}
+.device {
+  z-index: 1;
+}
+.device[data-3d] .antenna,
+.device[data-3d] .grain,
+.device[data-3d] .light,
+.device[data-3d] .label,
+.device[data-3d] .mic,
+.device[data-3d] .ffMark,
+.device[data-3d] .rwMark,
+.device[data-3d] .knobNeck,
+.device[data-3d] .wheelSheen,
+.device[data-3d] .rotor,
+.device[data-3d] .rotorTop,
+.device[data-3d] .hub,
+.device[data-3d] .pm,
+.device[data-3d] .recTab,
+.device[data-3d] .slot,
+.device[data-3d] .cross,
+.device[data-3d] .leverBar,
+.device[data-3d] .leverArm,
+.device[data-3d] .leverPivot,
+.device[data-3d] .key > span,
+.device[data-3d] .oledBoot {
+  visibility: hidden;
+}
+.device[data-3d] .body,
+.device[data-3d] .wheel,
+.device[data-3d] .key,
+.device[data-3d] .side,
+.device[data-3d] .mKey,
+.device[data-3d] .round,
+.device[data-3d] .pmKey,
+.device[data-3d] .knob {
+  background: none !important;
+  box-shadow: none !important;
+  color: transparent !important;
+  border-color: transparent !important;
+}
+.device[data-3d] .transport::before,
+.device[data-3d] .round::after,
+.device[data-3d] .cross::before,
+.device[data-3d] .cross::after {
+  display: none;
+}
+/* OLED 판은 3D 유리가 대신 — DOM은 글자만 */
+.device[data-3d] .oled {
+  box-shadow: none;
+}
+:global(html[data-boot]) .stage {
+  animation: bootRise 0.8s var(--ease-out, ease-out) both;
 }

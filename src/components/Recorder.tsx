@@ -1,10 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent as RPE } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type PointerEvent as RPE } from "react";
 import { tracks } from "@/content/portfolio";
 import { tape, type Frame } from "@/lib/tape";
 import { formatTime, useFrame, useTape } from "@/lib/useTape";
+import type { Live } from "./Device3D";
 import s from "./Recorder.module.css";
+
+// 3D 녹음기는 첫 화면이 그려진 뒤에 따로 불러온다 (three.js가 무거워서)
+const Device3D = lazy(() => import("./Device3D"));
+const DW = 853;
+const DH = 1370;
+const MARGIN = 140; // Device3D와 같은 값
+
+/** 3D를 켤 수 있는 환경인가: WebGL2, 움직임 줄이기 아님, 메모리 4GB 이상(알 수 있을 때) */
+function can3D() {
+  if (typeof window === "undefined") return false;
+  if (new URLSearchParams(location.search).get("3d") === "0") return false;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  if (mem !== undefined && mem < 4) return false;
+  try {
+    return !!document.createElement("canvas").getContext("webgl2");
+  } catch {
+    return false;
+  }
+}
 
 const HINTS: Record<string, string> = {
   wheel: "조그 휠을 돌려서 앞뒤로 감아 보세요",
@@ -30,6 +51,24 @@ export default function Recorder() {
   const snap = useTape();
   const [hint, setHint] = useState<string | null>(null);
   const [pressed, setPressed] = useState<string | null>(null);
+  // 3D 모델이 읽는 조작 상태 (React 렌더 없이 매 프레임 읽음)
+  const live = useRef<Live>({ lev: 0, pressed: null });
+  live.current.pressed = pressed;
+  const [use3d, setUse3d] = useState(false);
+  // 3D 준비 → 0.45초 동안 CSS 녹음기 위로 서서히 나타난 뒤(fading), CSS 겉모습을 숨기고 아래로 내려간다(on)
+  const [phase3d, setPhase3d] = useState<"off" | "fading" | "on">("off");
+  const on3d = phase3d === "on";
+  const ready3d = useCallback(() => {
+    setPhase3d("fading");
+    setTimeout(() => setPhase3d("on"), 480);
+  }, []);
+  useEffect(() => {
+    if (!can3D()) return;
+    const start = () => setUse3d(true);
+    const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    if (document.readyState === "complete") ric ? ric(start, { timeout: 800 }) : setTimeout(start, 200);
+    else window.addEventListener("load", () => (ric ? ric(start, { timeout: 800 }) : setTimeout(start, 200)), { once: true });
+  }, []);
 
   const deviceRef = useRef<HTMLDivElement>(null);
   const rotorRef = useRef<HTMLDivElement>(null);
@@ -176,6 +215,7 @@ export default function Recorder() {
     if (!l) return;
     const v = Math.max(-1, Math.min(1, (l.y - e.clientY) / l.range));
     leverRef.current?.style.setProperty("--lev", v.toFixed(3));
+    live.current.lev = v;
     tape.leverMove(v);
   };
   const leverUp = (e: RPE<HTMLDivElement>) => {
@@ -183,6 +223,7 @@ export default function Recorder() {
     lever.current = null;
     setLeverOn(false);
     leverRef.current?.style.setProperty("--lev", "0");
+    live.current.lev = 0;
     tape.leverEnd(e.timeStamp);
   };
 
@@ -249,7 +290,30 @@ export default function Recorder() {
 
   return (
     <figure className={s.wrap} aria-label="녹음기 인터페이스 — 포트폴리오 내비게이션">
-      <div ref={deviceRef} className={s.device} data-playing={snap.playing || undefined} data-rec={snap.rec || undefined}>
+      {use3d && deviceRef.current && (
+        <div className={s.stage} data-phase={phase3d} aria-hidden>
+          <div
+            className={s.stageCanvas}
+            style={{
+              left: `${(-MARGIN / DW) * 100}%`,
+              right: `${(-MARGIN / DW) * 100}%`,
+              top: `${(-MARGIN / DH) * 100}%`,
+              bottom: `${(-MARGIN / DH) * 100}%`,
+            }}
+          >
+            <Suspense fallback={null}>
+              <Device3D live={live} deviceEl={deviceRef.current} onReady={ready3d} />
+            </Suspense>
+          </div>
+        </div>
+      )}
+      <div
+        ref={deviceRef}
+        className={s.device}
+        data-playing={snap.playing || undefined}
+        data-rec={snap.rec || undefined}
+        data-3d={on3d || undefined}
+      >
         <div className={s.antenna} aria-hidden />
 
         {/* 왼쪽 레버: 위 = 빨리감기, 아래 = 되감기 */}
