@@ -43,7 +43,8 @@ export default function HeroName({ first, rest }: { first: string; rest: string 
       }
       // 글자마다 위상이 다른 레벨 → 파형처럼 흐른다
       const wave = f.level * (0.6 + 0.4 * Math.sin(f.seconds * 9 + i * 0.7));
-      const want = 300 + Math.max(near * near * 520, wave * 420);
+      // TE처럼 가늘게: 기본 300, 가까워지거나 소리가 커져도 560을 넘지 않는다
+      const want = 300 + Math.max(near * near * 260, wave * 220);
       const cur = weights.current[i] ?? 300;
       const next = cur + (want - cur) * 0.18;
       if (Math.abs(next - cur) > 0.4) {

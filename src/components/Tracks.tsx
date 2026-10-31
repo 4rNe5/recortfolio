@@ -1,6 +1,8 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import { awards, profile, stage, tracks, type ProjectTrack, type Track } from "@/content/portfolio";
+import { codeOf } from "@/lib/codes";
+import Glyph from "./Glyph";
 import HeroName from "./HeroName";
 import HeroActions from "./HeroActions";
 import Waveform from "./Waveform";
@@ -17,7 +19,8 @@ function Bar({ i, right, title }: { i: number; right?: string; title: string }) 
       <span className={s.sentinel} data-sentinel aria-hidden />
       <div className={s.bar}>
         <header className={s.head}>
-          <span className={s.no}>Track {num(i)}</span>
+          <Glyph t={tracks[i]} />
+          <span className={s.no}>track {num(i)}</span>
           <span className={s.stuckTitle} aria-hidden>
             {title}
           </span>
@@ -97,17 +100,23 @@ function Project({ t, i }: { t: ProjectTrack; i: number }) {
         <span className={s.icon} data-icon={i} data-logo={t.id === "sfoodgo" || undefined}>
           <Image src={t.icon} alt="" width={96} height={96} loading="eager" />
         </span>
-        <h2 className={s.title} data-scramble>
-          <span>{t.title}</span>
-        </h2>
+        <div className={s.titleText}>
+          <span className={s.code}>{codeOf(t, i)}</span>
+          <h2 className={s.title} data-scramble>
+            <span>{t.title}</span>
+          </h2>
+        </div>
       </div>
       <p className={s.tagline}>{t.tagline}</p>
 
+      {/* 사양표: 작은 이름표 + 큰 값, 1px 선으로 나뉜 칸 */}
       <dl className={s.facts} style={{ ["--n" as string]: t.facts.length }}>
-        {t.facts.map((f) => (
+        {t.facts.map((f, k) => (
           <div key={f.v + f.l}>
-            <dt>{f.v}</dt>
-            <dd>{f.l}</dd>
+            <dt>
+              <span className={s.factNo}>[{k + 1}]</span> {f.l}
+            </dt>
+            <dd>{f.v}</dd>
           </div>
         ))}
       </dl>
@@ -115,19 +124,28 @@ function Project({ t, i }: { t: ProjectTrack; i: number }) {
       <Media t={t} />
 
       <div className={s.body}>
-        <ul className={s.did}>
-          {t.did.map((d) => (
-            <li key={d}>{d}</li>
+        <ol className={s.did}>
+          {t.did.map((d, k) => (
+            <li key={d}>
+              <span className={s.didNo} aria-hidden>
+                {num(k + 1)}
+              </span>
+              <span>{d}</span>
+            </li>
           ))}
-        </ul>
+        </ol>
         <dl className={s.side}>
+          <div>
+            <dt>기간</dt>
+            <dd>{t.period}</dd>
+          </div>
           <div>
             <dt>역할</dt>
             <dd>{t.role}</dd>
           </div>
           <div>
-            <dt>사용 기술</dt>
-            <dd>{t.stack.join(", ")}</dd>
+            <dt>기술</dt>
+            <dd>{t.stack.join(" · ")}</dd>
           </div>
           <div>
             <dt>링크</dt>
@@ -163,7 +181,10 @@ function Awards({ i }: { i: number }) {
               {a.event}
               <small>{a.work}</small>
             </span>
-            <span className={s.prize}>{a.prize}</span>
+            <span className={s.prize}>
+              {a.top && <Glyph t={t} />}
+              {a.prize}
+            </span>
           </li>
         ))}
       </ol>
@@ -213,7 +234,7 @@ function Contact({ i }: { i: number }) {
   const t = tracks[i];
   return (
     <section id={t.id} data-track={i} className={`${s.track} ${s.contact}`} style={vars(t)}>
-      <Bar i={i} right="Side A 끝" title="연락하기" />
+      <Bar i={i} right="side a 끝" title="연락하기" />
       <p className={s.tagline}>다음 트랙을 같이 만들 분을 기다립니다.</p>
       <a className={s.mail} href={`mailto:${profile.email}`}>
         {profile.email}

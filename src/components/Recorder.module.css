@@ -157,8 +157,8 @@
   gap: calc(var(--u) * 6);
 }
 .oledTime {
-  font: 600 calc(var(--u) * 40) / 0.9 var(--font-oled);
-  letter-spacing: calc(var(--u) * -0.8);
+  font: 400 calc(var(--u) * 36) / 0.9 var(--font-oled);
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 /* 상태 표시: 정지 ■ / 재생 ▶ / 녹음 ● — 글리프 대신 도형 */
@@ -168,7 +168,6 @@
   height: calc(var(--u) * 10);
   margin-top: calc(var(--u) * 3);
   background: #f6f6f6;
-  transition: clip-path 0.25s var(--ease-out), border-radius 0.25s, background 0.25s;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
 }
 .oledState[data-state="play"] {
@@ -196,26 +195,26 @@
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  font: 600 calc(var(--u) * 17) / 1.1 var(--font-oled);
-  letter-spacing: calc(var(--u) * 1.4);
-  text-transform: uppercase;
+  font: 400 calc(var(--u) * 16) / 1.1 var(--font-oled);
+  letter-spacing: calc(var(--u) * 0.6);
+  text-transform: lowercase;
   mask-image: linear-gradient(90deg, #000 85%, transparent);
   -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
 }
 .oledLine > span {
   display: inline-block;
-  animation: oledIn 0.35s var(--ease-out);
+  animation: oledIn 0.24s steps(3, end);
 }
 @keyframes oledIn {
   from {
     opacity: 0;
-    transform: translateY(40%);
+    transform: translateY(60%);
   }
 }
 .marquee {
   padding-right: 2.5em;
   animation:
-    oledIn 0.35s var(--ease-out),
+    oledIn 0.24s steps(3, end),
     marquee 8s 1.2s linear infinite !important;
 }
 .marquee::after {
@@ -227,11 +226,57 @@
     transform: translateX(-50%);
   }
 }
+/* 레벨 미터: 칸 단위로 켜진다 */
+.oledMeter {
+  --seg: 0;
+  position: absolute;
+  left: calc(var(--u) * 12);
+  right: calc(var(--u) * 12);
+  top: calc(var(--u) * 54);
+  height: calc(var(--u) * 7);
+  background: repeating-linear-gradient(90deg, #2a2a2a 0 calc(100% / var(--n) - var(--u) * 2.5), transparent 0 calc(100% / var(--n)));
+}
+.oledMeter::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, #f6f6f6 0 calc(100% / var(--n) - var(--u) * 2.5), transparent 0 calc(100% / var(--n)));
+  clip-path: inset(0 calc((1 - var(--seg) / var(--n)) * 100%) 0 0);
+}
+.device[data-rec] .oledMeter::after {
+  background: repeating-linear-gradient(90deg, #ff3b1f 0 calc(100% / var(--n) - var(--u) * 2.5), transparent 0 calc(100% / var(--n)));
+}
+/* 트랙 전환: 번호가 화면을 덮었다가 사라진다 */
+.oledFlash {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: #f6f6f6;
+  color: #040404;
+  font: 400 calc(var(--u) * 64) / 1 var(--font-oled);
+  text-shadow: none;
+  animation: oledFlash 0.62s steps(1, end) forwards;
+}
+@keyframes oledFlash {
+  0% {
+    background: #f6f6f6;
+    color: #040404;
+  }
+  30% {
+    background: #040404;
+    color: #f6f6f6;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 .oledNo {
   flex: none;
-  font: 700 calc(var(--u) * 15) / 1 var(--font-oled);
+  font: 400 calc(var(--u) * 15) / 1 var(--font-oled);
   padding: calc(var(--u) * 3) calc(var(--u) * 5) calc(var(--u) * 2);
-  border-radius: calc(var(--u) * 4);
+  border-radius: 0;
   background: #f6f6f6;
   color: #040404;
   text-shadow: none;
@@ -907,9 +952,52 @@
   margin-top: 18px;
   min-height: 2.6em;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--muted);
+}
+/* ---------- 사용 설명서식 지시 번호 ---------- */
+.callout {
+  position: absolute;
+  left: calc(var(--u) * var(--x));
+  top: calc(var(--u) * var(--y));
+  z-index: 5;
+  width: calc(var(--u) * 30);
+  height: calc(var(--u) * 30);
+  margin: calc(var(--u) * -15) 0 0 calc(var(--u) * -15);
+  display: none;
+  place-items: center;
+  background: #111;
+  color: #f6f6f6;
+  font: 400 calc(var(--u) * 17) / 1 var(--font-pixel-mono);
+  pointer-events: none;
+}
+.device[data-guide] .callout {
+  display: grid;
+}
+.legend {
+  display: grid !important;
+  grid-template-columns: max-content max-content minmax(0, 1fr);
+  gap: 5px 10px;
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: left;
+}
+.legend > span {
+  display: contents !important;
+}
+.legend b {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  background: var(--fg);
+  color: var(--bg);
+  font: 400 11px / 1 var(--font-pixel-mono);
+}
+.legend i {
+  font-style: normal;
+  color: var(--fg);
 }
 .hint span {
   display: inline-block;
@@ -918,7 +1006,8 @@
   display: none !important;
 }
 @media (hover: none) {
-  .hintKb {
+  .hintKb,
+  .legend > .hintKb {
     display: none !important;
   }
   .hintTouch {
@@ -926,13 +1015,11 @@
   }
 }
 .hint > span {
-  animation: hintIn 0.35s var(--ease-out, ease-out);
+  animation: hintIn 0.18s steps(2, end);
 }
 @keyframes hintIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
-    filter: blur(2px);
   }
 }
 

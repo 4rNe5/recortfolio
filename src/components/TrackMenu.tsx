@@ -1,28 +1,28 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { flushSync } from "react-dom";
 import { tracks, type Track } from "@/content/portfolio";
 import * as sound from "@/lib/sound";
 import { tape, type Frame, type VT } from "@/lib/tape";
 import { formatDuration, useFrame, useTape } from "@/lib/useTape";
+import { codeOf } from "@/lib/codes";
+import Glyph from "./Glyph";
 import s from "./TrackMenu.module.css";
 
-const ROW = 60; // 목록 한 줄 높이(px) — 선택 막대가 이 간격으로 미끄러진다
+const ROW = 48; // 목록 한 줄 높이(px) — 픽셀 글꼴 12px 두 줄 + 여백
 const num = (i: number) => String(i).padStart(2, "0");
 
 const SUB: Record<string, string> = { intro: "소개", awards: "수상", stage: "발표와 전시", contact: "연락하기" };
-const subOf = (t: Track) => (t.kind === "project" ? t.period : SUB[t.kind]);
+/** 검은 화면에서 검은 트랙 색은 흰색으로 */
+const screenColor = (t: Track) => (t.color === "#1f1f1f" ? "#f2f2f0" : t.color);
+const subOf = (t: Track, i: number) => (t.kind === "project" ? `${codeOf(t, i)} · ${t.period}` : SUB[t.kind]);
 
-function Cover({ t, i, size }: { t: Track; i: number; size: number }) {
+/** OLED 화면의 표지 = 섹션 도형 하나 (프로젝트는 ■ — 고르면 이 사각형이 챕터 아이콘으로 자라난다) */
+function Cover({ t, size }: { t: Track; size: number }) {
   return (
-    <span className={s.cover} data-cover style={{ width: size, height: size, ["--c" as string]: t.color } as CSSProperties}>
-      {t.kind === "project" ? (
-        <Image src={t.icon} alt="" width={size * 2} height={size * 2} data-logo={t.id === "sfoodgo" || undefined} />
-      ) : (
-        <span className={s.coverNo}>{num(i)}</span>
-      )}
+    <span className={s.cover} data-cover style={{ width: size, height: size, ["--c" as string]: screenColor(t) } as CSSProperties}>
+      <Glyph t={t} />
     </span>
   );
 }
@@ -159,12 +159,11 @@ export default function TrackMenu() {
       <button className={s.scrim} tabIndex={-1} aria-label="닫기" onClick={() => tape.toggleMenu(false)} />
 
       <div ref={playerRef} className={s.player} role="dialog" aria-modal="true" aria-label="트랙리스트">
-        <div className={s.grille} aria-hidden />
         <div className={s.screen}>
           {/* 상태줄 */}
           <div className={s.status}>
             <span className={s.state} data-state={snap.playing ? "play" : "stop"} aria-hidden />
-            <span className={s.statusTitle}>Side A</span>
+            <span className={s.statusTitle}>side a</span>
             <span className={s.statusTotal}>{total ? formatDuration(total) : ""}</span>
             <span className={s.battery} aria-hidden>
               <i />
@@ -172,8 +171,8 @@ export default function TrackMenu() {
           </div>
 
           {/* 지금 재생 중 */}
-          <div className={s.now} style={{ ["--c" as string]: cur.color } as CSSProperties}>
-            <Cover t={cur} i={snap.track} size={52} />
+          <div className={s.now} style={{ ["--c" as string]: screenColor(cur) } as CSSProperties}>
+            <Cover t={cur} size={48} />
             <div className={s.nowText}>
               <span className={s.nowLabel}>{snap.playing ? "재생 중" : "일시정지"}</span>
               <span className={s.nowTitle}>{cur.title}</span>
@@ -210,7 +209,8 @@ export default function TrackMenu() {
                   className={s.row}
                   data-sel={i === sel || undefined}
                   data-current={i === snap.track || undefined}
-                  style={{ ["--c" as string]: t.color, ["--i" as string]: i } as CSSProperties}
+                  data-mono={t.color === "#1f1f1f" || undefined}
+                  style={{ ["--c" as string]: screenColor(t), ["--i" as string]: i } as CSSProperties}
                   onPointerEnter={(e) => {
                     if (e.pointerType !== "mouse") return;
                     byMouse.current = true;
@@ -229,12 +229,12 @@ export default function TrackMenu() {
                       num(i)
                     )}
                   </span>
-                  <Cover t={t} i={i} size={36} />
+                  <Cover t={t} size={24} />
                   <span className={s.meta}>
                     <span className={s.title}>
                       <span>{t.title}</span>
                     </span>
-                    <span className={s.sub}>{subOf(t)}</span>
+                    <span className={s.sub}>{subOf(t, i)}</span>
                   </span>
                   <span className={s.dur}>{durations[i] ? formatDuration(durations[i]) : ""}</span>
                 </li>
@@ -250,7 +250,7 @@ export default function TrackMenu() {
         <div className={s.foot}>
           <span className={s.keys}>
             <kbd>↑</kbd>
-            <kbd>↓</kbd> 고르기 <kbd>Enter</kbd> 재생 <kbd>Esc</kbd> 닫기
+            <kbd>↓</kbd> 고르기 <kbd>enter</kbd> 재생 <kbd>esc</kbd> 닫기
           </span>
           <button tabIndex={open ? 0 : -1} className={s.close} onClick={() => tape.toggleMenu(false)}>
             닫기

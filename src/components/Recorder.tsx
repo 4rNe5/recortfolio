@@ -22,6 +22,16 @@ const HINTS: Record<string, string> = {
   theme: "밝은 테마와 어두운 테마를 바꿉니다",
 };
 
+/** 사용 설명서식 지시 번호 — 기기 좌표(u)와 설명 */
+const GUIDE = [
+  { n: 1, x: 196, y: 292, k: "휠", d: "돌려서 앞뒤로 감기" },
+  { n: 2, x: 35, y: 212, k: "레버", d: "튕기면 트랙 이동, 누르고 있으면 빨리 감기" },
+  { n: 3, x: 355, y: 1064, k: "▶", d: "재생 / 일시정지" },
+  { n: 4, x: 812, y: 280, k: "m", d: "재생목록" },
+  { n: 5, x: 746, y: 905, k: "페이더", d: "전체를 한 번에 훑기" },
+] as const;
+const SEG = 14; // OLED 레벨 미터 칸 수
+
 const norm = (d: number) => ((((d + 180) % 360) + 360) % 360) - 180;
 
 export default function Recorder() {
@@ -37,7 +47,19 @@ export default function Recorder() {
   const handleRef = useRef<HTMLDivElement>(null);
   const levelL = useRef<HTMLDivElement>(null);
   const levelR = useRef<HTMLDivElement>(null);
+  const meterRef = useRef<HTMLSpanElement>(null);
   const lastTime = useRef("");
+  const lastSeg = useRef(-1);
+  // 트랙이 바뀌면 OLED에 번호가 크게 한 번 뜬다 (첫 화면 제외)
+  const [flash, setFlash] = useState<number | null>(null);
+  const prevTrack = useRef(snap.track);
+  useEffect(() => {
+    if (prevTrack.current === snap.track) return;
+    prevTrack.current = snap.track;
+    setFlash(snap.track);
+    const t = setTimeout(() => setFlash(null), 650);
+    return () => clearTimeout(t);
+  }, [snap.track]);
 
   const onFrame = useCallback((f: Frame) => {
     const a = `${f.angle.toFixed(2)}deg`;
@@ -51,6 +73,12 @@ export default function Recorder() {
     handleRef.current?.style.setProperty("--pos", f.progress.toFixed(4));
     levelL.current?.style.setProperty("--lv", f.level.toFixed(3));
     levelR.current?.style.setProperty("--lv", (f.level * (0.82 + 0.18 * Math.sin(f.seconds * 3.1))).toFixed(3));
+    // OLED 미터는 칸 단위로 끊어서 켠다
+    const seg = Math.round(Math.min(1, f.level * 1.15) * SEG);
+    if (seg !== lastSeg.current) {
+      lastSeg.current = seg;
+      meterRef.current?.style.setProperty("--seg", String(seg));
+    }
   }, []);
   useFrame(onFrame);
 
@@ -226,10 +254,17 @@ export default function Recorder() {
   const no = String(snap.track).padStart(2, "0");
   const line = snap.message ?? t.display;
   const contactIndex = tracks.findIndex((x) => x.kind === "contact");
+  const guide = snap.ready && snap.track === 0 && !snap.playing;
 
   return (
     <figure className={s.wrap} aria-label="녹음기 인터페이스 — 포트폴리오 내비게이션">
-      <div ref={deviceRef} className={s.device} data-playing={snap.playing || undefined} data-rec={snap.rec || undefined}>
+      <div
+        ref={deviceRef}
+        className={s.device}
+        data-playing={snap.playing || undefined}
+        data-rec={snap.rec || undefined}
+        data-guide={guide || undefined}
+      >
         <div className={s.antenna} aria-hidden />
 
         {/* 왼쪽 레버: 위 = 빨리감기, 아래 = 되감기 */}
@@ -282,6 +317,7 @@ export default function Recorder() {
               </span>
               <span className={s.oledState} data-state={snap.rec ? "rec" : snap.playing ? "play" : "stop"} aria-hidden />
             </div>
+            <span ref={meterRef} className={s.oledMeter} style={{ ["--n" as string]: SEG }} aria-hidden />
             <div className={s.oledBottom}>
               <span className={s.oledLine}>
                 <span key={line} className={line.length > 10 ? s.marquee : undefined} data-text={line}>
@@ -290,6 +326,11 @@ export default function Recorder() {
               </span>
               <span className={s.oledNo}>{no}</span>
             </div>
+            {flash !== null && (
+              <span key={flash} className={s.oledFlash} aria-hidden>
+                {String(flash).padStart(2, "0")}
+              </span>
+            )}
             <span className={s.oledBoot} aria-hidden />
           </div>
 
@@ -432,6 +473,13 @@ export default function Recorder() {
           </div>
         </div>
 
+        {/* 사용 설명서식 지시 번호 — 첫 트랙에서 멈춰 있을 때만 */}
+        {GUIDE.map((g) => (
+          <span key={g.n} className={s.callout} style={{ ["--x" as string]: g.x, ["--y" as string]: g.y }} aria-hidden>
+            {g.n}
+          </span>
+        ))}
+
         {/* 볼륨 노브 */}
         <div className={s.knobNeck} aria-hidden />
         <div
@@ -455,9 +503,23 @@ export default function Recorder() {
       <figcaption className={s.hint} aria-hidden>
         {hint ? (
           <span key={hint}>{hint}</span>
+        ) : guide ? (
+          <span key="guide" className={s.legend}>
+            {GUIDE.map((g) => (
+              <span key={g.n}>
+                <b>{g.n}</b>
+                <i>{g.k}</i>
+                {g.d}
+              </span>
+            ))}
+            <span className={s.hintKb}>
+              <b>k</b>
+              <i>키</i>space · ← → · m · r
+            </span>
+          </span>
         ) : (
           <span key="idle">
-            <span className={s.hintKb}>{snap.ready ? "휠을 돌리거나 ▶를 눌러 보세요. 키보드는 Space, ←, →, M, R" : "테이프를 감는 중"}</span>
+            <span className={s.hintKb}>{snap.ready ? "휠을 돌리거나 ▶를 눌러 보세요 · space ← → m r" : "테이프를 감는 중"}</span>
             <span className={s.hintTouch}>{snap.ready ? "휠을 돌리거나 ▶를 눌러 보세요" : "테이프를 감는 중"}</span>
           </span>
         )}

@@ -487,7 +487,8 @@ class Tape {
           const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
           root.animate(
             { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
-            { duration: 720, easing: "cubic-bezier(0.3, 0.6, 0.2, 1)", pseudoElement: "::view-transition-new(root)" },
+            // 기계식: 원이 매끄럽게가 아니라 아홉 칸으로 끊어지며 퍼진다
+            { duration: 540, easing: "steps(9, end)", pseudoElement: "::view-transition-new(root)" },
           );
         })
         .catch(() => {});
