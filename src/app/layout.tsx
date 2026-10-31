@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Funnel_Display } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const display = Funnel_Display({ variable: "--font-funnel", subsets: ["latin"] });
+// 녹음기 OLED용 픽셀 글꼴 (갈무리, OFL — src/fonts/Galmuri-OFL.txt). 사이트에 쓰는 글자만 남긴 부분 집합.
+const pixelMono = localFont({ src: "../fonts/GalmuriMono11.woff2", variable: "--font-galmuri-mono", display: "swap" });
 
 // 미리보기 이미지가 절대 주소로 나가도록. Vercel에선 production 도메인(커스텀 도메인 포함)을 자동으로 따른다.
 const site = process.env.VERCEL_PROJECT_PRODUCTION_URL
@@ -42,7 +45,7 @@ const boot = `try{var d=document.documentElement;d.setAttribute('data-js','');va
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ko" className={display.variable} suppressHydrationWarning>
+    <html lang="ko" className={`${display.variable} ${pixelMono.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="" />
         <link

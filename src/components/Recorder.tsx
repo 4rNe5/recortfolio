@@ -22,6 +22,8 @@ const HINTS: Record<string, string> = {
   theme: "밝은 테마와 어두운 테마를 바꿉니다",
 };
 
+const SEG = 14; // OLED 레벨 미터 칸 수
+
 const norm = (d: number) => ((((d + 180) % 360) + 360) % 360) - 180;
 
 export default function Recorder() {
@@ -37,7 +39,19 @@ export default function Recorder() {
   const handleRef = useRef<HTMLDivElement>(null);
   const levelL = useRef<HTMLDivElement>(null);
   const levelR = useRef<HTMLDivElement>(null);
+  const meterRef = useRef<HTMLSpanElement>(null);
   const lastTime = useRef("");
+  const lastSeg = useRef(-1);
+  // 트랙이 바뀌면 OLED에 번호가 크게 한 번 뜬다 (첫 화면 제외)
+  const [flash, setFlash] = useState<number | null>(null);
+  const prevTrack = useRef(snap.track);
+  useEffect(() => {
+    if (prevTrack.current === snap.track) return;
+    prevTrack.current = snap.track;
+    setFlash(snap.track);
+    const t = setTimeout(() => setFlash(null), 650);
+    return () => clearTimeout(t);
+  }, [snap.track]);
 
   const onFrame = useCallback((f: Frame) => {
     const a = `${f.angle.toFixed(2)}deg`;
@@ -51,6 +65,12 @@ export default function Recorder() {
     handleRef.current?.style.setProperty("--pos", f.progress.toFixed(4));
     levelL.current?.style.setProperty("--lv", f.level.toFixed(3));
     levelR.current?.style.setProperty("--lv", (f.level * (0.82 + 0.18 * Math.sin(f.seconds * 3.1))).toFixed(3));
+    // OLED 미터는 칸 단위로 끊어서 켠다
+    const seg = Math.round(Math.min(1, f.level * 1.15) * SEG);
+    if (seg !== lastSeg.current) {
+      lastSeg.current = seg;
+      meterRef.current?.style.setProperty("--seg", String(seg));
+    }
   }, []);
   useFrame(onFrame);
 
@@ -282,6 +302,7 @@ export default function Recorder() {
               </span>
               <span className={s.oledState} data-state={snap.rec ? "rec" : snap.playing ? "play" : "stop"} aria-hidden />
             </div>
+            <span ref={meterRef} className={s.oledMeter} style={{ ["--n" as string]: SEG }} aria-hidden />
             <div className={s.oledBottom}>
               <span className={s.oledLine}>
                 <span key={line} className={line.length > 10 ? s.marquee : undefined} data-text={line}>
@@ -290,6 +311,11 @@ export default function Recorder() {
               </span>
               <span className={s.oledNo}>{no}</span>
             </div>
+            {flash !== null && (
+              <span key={flash} className={s.oledFlash} aria-hidden>
+                {String(flash).padStart(2, "0")}
+              </span>
+            )}
             <span className={s.oledBoot} aria-hidden />
           </div>
 
