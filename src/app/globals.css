@@ -13,6 +13,7 @@
   --bg: #e5e5e2;
   --fg: #141414;
   --muted: #64645f;
+  --label-mix: 55%; /* 트랙 색 글자: 작은 글씨 대비 4.5:1 이상이 되도록 글자색 쪽으로 섞는 비율 */
   --card: #efefec;
   --line: rgb(0 0 0 / 0.12);
   --line-strong: rgb(0 0 0 / 0.2);
@@ -53,6 +54,7 @@
     --bg: #0f0f0f;
     --fg: #ededeb;
     --muted: #8f8f8a;
+  --label-mix: 70%;
     --card: #181818;
     --line: rgb(255 255 255 / 0.1);
     --line-strong: rgb(255 255 255 / 0.22);
@@ -67,6 +69,7 @@
   --bg: #0f0f0f;
   --fg: #ededeb;
   --muted: #8f8f8a;
+  --label-mix: 70%;
   --card: #181818;
   --line: rgb(255 255 255 / 0.1);
   --line-strong: rgb(255 255 255 / 0.22);

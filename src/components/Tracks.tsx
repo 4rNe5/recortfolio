@@ -81,9 +81,10 @@ function Head({ title, lede, icon, href }: { title: string; lede: string; icon?:
 
 type Row = { key: string; label: ReactNode; value: ReactNode; aside?: ReactNode; href?: string; top?: boolean };
 /** 이름표·값 줄 — 이력, 프로젝트 정보, 한 일, 수상, 채널이 모두 이 한 가지 줄을 쓴다 */
-function Rows({ rows, lw = "96px", size = "body", ...rest }: { rows: Row[]; lw?: string; size?: "body" | "lead"; "aria-label"?: string }) {
+/** accent: 이름표를 트랙 색으로 (프로젝트의 "한 일" 번호에만 쓴다) */
+function Rows({ rows, lw = "96px", size = "body", accent, ...rest }: { rows: Row[]; lw?: string; size?: "body" | "lead"; accent?: boolean; "aria-label"?: string }) {
   return (
-    <ul className={s.rows} data-size={size} style={{ ["--lw" as string]: lw } as CSSProperties} {...rest}>
+    <ul className={s.rows} data-size={size} data-accent={accent || undefined} style={{ ["--lw" as string]: lw } as CSSProperties} {...rest}>
       {rows.map((r, k) => {
         const inner = (
           <>
@@ -182,7 +183,7 @@ function Project({ t, i }: { t: ProjectTrack; i: number }) {
       <Frame t={t} />
 
       <div className={s.body}>
-        <Rows lw="32px" rows={t.did.map((d, k) => ({ key: d, label: num(k + 1), value: d }))} />
+        <Rows accent lw="32px" rows={t.did.map((d, k) => ({ key: d, label: num(k + 1), value: d }))} />
         <Rows
           lw="56px"
           rows={[
