@@ -17,16 +17,28 @@ export default function Boot() {
   }, []);
 
   // 챕터 머리 바로 앞의 감지점이 화면 위로 지나가면 그 챕터에 data-stuck을 단다.
-  // (CSS의 붙음 감지 쿼리는 iOS Safari가 지원하지 않아 IntersectionObserver를 쓴다)
+  // (CSS의 붙음 감지 쿼리는 iOS Safari가 지원하지 않는다. IntersectionObserver는 장면 전환·재생목록의
+  //  순간이동처럼 감지점이 화면을 건너뛰면 알려 주지 않아서, 스크롤 위치가 바뀐 프레임마다 직접 잰다)
   useEffect(() => {
-    const io = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        const section = e.target.closest("[data-track]");
-        section?.toggleAttribute("data-stuck", !e.isIntersecting && e.boundingClientRect.top < 0);
+    const marks = Array.from(document.querySelectorAll<HTMLElement>("[data-sentinel]")).map((el) => ({
+      el,
+      section: el.closest<HTMLElement>("[data-track]"),
+      on: false,
+    }));
+    let lastY = -1;
+    // 붙는 머리는 모바일·태블릿 레이아웃에만 있다
+    const mq = window.matchMedia("(max-width: 1099px)");
+    return tape.onFrame((f) => {
+      if (!mq.matches || f.scrollY === lastY) return;
+      lastY = f.scrollY;
+      for (const m of marks) {
+        const on = m.el.getBoundingClientRect().top < 0;
+        if (on !== m.on) {
+          m.on = on;
+          m.section?.toggleAttribute("data-stuck", on);
+        }
       }
     });
-    document.querySelectorAll("[data-sentinel]").forEach((el) => io.observe(el));
-    return () => io.disconnect();
   }, []);
 
   // 챕터 요소는 처음 화면에 들어올 때 한 번 떠오른다 (스크롤 위치에 묶이지 않음 — 다시 숨지 않는다)

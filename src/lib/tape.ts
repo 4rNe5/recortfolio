@@ -352,8 +352,8 @@ class Tape {
 
   goTo(i: number, opts: { silent?: boolean } = {}) {
     const n = clamp(i, 0, this.tops.length - 1);
-    // 데스크톱에서 다른 챕터로 갈 때는 중간을 훑지 않고 장면을 바꾼다 (기기는 그대로)
-    if (n !== this.base() && window.matchMedia("(min-width: 1100px)").matches && this.scene(n)) {
+    // 다른 챕터로 갈 때는 중간을 훑지 않고 장면을 바꾼다 (기기·미니 덱은 그대로)
+    if (n !== this.base() && this.scene(n)) {
       if (!opts.silent) this.click(1.1);
       return;
     }

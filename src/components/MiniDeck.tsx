@@ -65,7 +65,7 @@ export default function MiniDeck() {
 
   const t = tracks[snap.track];
   return (
-    <div className={s.bar} data-show={show || undefined} inert={!show}>
+    <div className={s.bar} data-minideck data-show={show || undefined} inert={!show}>
       <span ref={barRef} className={s.progress} aria-hidden />
       <div
         ref={wheelRef}
