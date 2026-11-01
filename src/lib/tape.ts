@@ -5,7 +5,9 @@
 import { tracks } from "@/content/portfolio";
 import * as sound from "./sound";
 
-export const SPEEDS = [0.5, 1, 1.5, 2, 3, 4] as const;
+export const SPEEDS = [0.5, 1, 1.5, 2, 3, 4, 5] as const;
+/** 처음 재생 속도: 1.5X */
+const DEFAULT_SPEED_INDEX = 2;
 /** 1x 재생 속도 (px/s) */
 export const BASE_PX_PER_SEC = 90;
 /** 스크롤 1px 당 휠 회전각 */
@@ -29,7 +31,7 @@ export type Snapshot = {
   theme: Theme;
   message: string | null;
   ready: boolean;
-  /** 모바일에서 화면을 누르고 있는 동안 2.5배속 (Reels식) */
+  /** 모바일에서 화면을 누르고 있는 동안 4배속 (Reels식) */
   boost: boolean;
 };
 
@@ -46,7 +48,7 @@ const INITIAL: Snapshot = {
   track: 0,
   playing: false,
   rec: false,
-  speedIndex: 1,
+  speedIndex: DEFAULT_SPEED_INDEX,
   sound: false,
   volume: 0.7,
   menu: false,
@@ -58,7 +60,9 @@ const INITIAL: Snapshot = {
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 /** 누르고 있는 동안의 재생 속도 */
-export const BOOST_SPEED = 2.5;
+export const BOOST_SPEED = 4;
+/** 누르는 동안 실제 속도 — 이미 더 빠르게 설정돼 있으면 그 속도 유지 */
+export const boostRate = (speedIndex: number) => Math.max(BOOST_SPEED, SPEEDS[speedIndex]);
 
 /**
  * 임계감쇠 스프링 — 현재 속도(v)를 이어받아 목표(to)로 간다.
@@ -375,10 +379,10 @@ class Tape {
   }
 
   private rate() {
-    return this.snap.boost ? BOOST_SPEED : SPEEDS[this.snap.speedIndex];
+    return this.snap.boost ? boostRate(this.snap.speedIndex) : SPEEDS[this.snap.speedIndex];
   }
 
-  /** 누르고 있는 동안 2.5배속 — 멈춰 있었으면 그동안만 재생하고, 떼면 원래 상태로 */
+  /** 누르고 있는 동안 4배속 — 멈춰 있었으면 그동안만 재생하고, 떼면 원래 상태로 */
   private holdWasPlaying = false;
   hold(on: boolean) {
     if (on === this.snap.boost) return;
@@ -388,7 +392,7 @@ class Tape {
       this.playPos = window.scrollY;
       this.spring = null;
       this.set({ boost: true, playing: true });
-      this.flash(`▶▶ ${BOOST_SPEED}X`, 60_000);
+      this.flash(`▶▶ ${boostRate(this.snap.speedIndex)}X`, 60_000);
     } else {
       if (this.msgTimer) clearTimeout(this.msgTimer);
       this.set({ boost: false, playing: this.holdWasPlaying && this.snap.playing, message: null });
