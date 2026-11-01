@@ -336,6 +336,13 @@ class Tape {
     const mono = t.color === "#1f1f1f";
     root.style.setProperty("--accent", mono && dark ? "#ededeb" : t.color);
     root.style.setProperty("--accent-ink", mono && dark ? "#111111" : t.ink);
+    this.setGlow(this.snap.track);
+  }
+
+  /** 배경 광원 색 — 무채색 트랙은 빛을 끈다 (globals.css .ambient). 장면 전환은 시작할 때 미리 바꿔 화면과 같이 넘어간다 */
+  private setGlow(i: number) {
+    const t = tracks[i];
+    if (t) document.documentElement.style.setProperty("--glow", t.color === "#1f1f1f" ? "transparent" : t.color);
   }
 
   // ---- 조작 ----
@@ -410,6 +417,7 @@ class Tape {
     root.classList.remove("vt-fwd", "vt-back");
     root.classList.add("vt-scene", n >= this.base() ? "vt-fwd" : "vt-back");
     hooks.before?.();
+    this.setGlow(n);
     this.pending = n;
     let replay: HTMLElement[] = [];
     const vt = doc.startViewTransition(() => {

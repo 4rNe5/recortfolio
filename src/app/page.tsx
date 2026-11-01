@@ -9,6 +9,7 @@ export default function Home() {
   return (
     <>
       <Boot />
+      <div className="ambient" data-glow="c" aria-hidden />
       <div className={styles.shell}>
         <aside className={styles.deck} id="deck">
           <div className={styles.deckInner} data-deck>
