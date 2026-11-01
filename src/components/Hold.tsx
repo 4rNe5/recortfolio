@@ -6,7 +6,7 @@ import { BOOST_SPEED, tape } from "@/lib/tape";
 import { useTape } from "@/lib/useTape";
 import s from "./Hold.module.css";
 
-// 조작 대상이 아닌 곳을 길게 누르면 1.5배속 — 버튼·링크·기기·미니 덱·재생목록 위에서는 원래 동작
+// 조작 대상이 아닌 곳을 길게 누르면 2.5배속 — 버튼·링크·기기·미니 덱·재생목록 위에서는 원래 동작
 const SKIP = "a, button, input, textarea, select, label, summary, [role=button], [role=slider], [role=dialog], #deck, [data-minideck]";
 const DELAY = 320; // iOS 길게 눌러 선택(약 500ms)보다 먼저
 const SLOP = 10; // 이만큼 움직이면 스크롤로 본다

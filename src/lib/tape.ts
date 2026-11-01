@@ -30,7 +30,7 @@ export type Snapshot = {
   theme: Theme;
   message: string | null;
   ready: boolean;
-  /** 모바일에서 화면을 누르고 있는 동안 1.5배속 (Reels식) */
+  /** 모바일에서 화면을 누르고 있는 동안 2.5배속 (Reels식) */
   boost: boolean;
 };
 
@@ -59,7 +59,7 @@ const INITIAL: Snapshot = {
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 /** 누르고 있는 동안의 재생 속도 */
-export const BOOST_SPEED = 1.5;
+export const BOOST_SPEED = 2.5;
 
 /**
  * 임계감쇠 스프링 — 현재 속도(v)를 이어받아 목표(to)로 간다.
@@ -381,7 +381,7 @@ class Tape {
     return this.snap.boost ? BOOST_SPEED : SPEEDS[this.snap.speedIndex];
   }
 
-  /** 누르고 있는 동안 1.5배속 — 멈춰 있었으면 그동안만 재생하고, 떼면 원래 상태로 */
+  /** 누르고 있는 동안 2.5배속 — 멈춰 있었으면 그동안만 재생하고, 떼면 원래 상태로 */
   private holdWasPlaying = false;
   hold(on: boolean) {
     if (on === this.snap.boost) return;
