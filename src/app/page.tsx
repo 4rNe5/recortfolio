@@ -1,4 +1,5 @@
 import Boot from "@/components/Boot";
+import Hold from "@/components/Hold";
 import MiniDeck from "@/components/MiniDeck";
 import Recorder from "@/components/Recorder";
 import TrackMenu from "@/components/TrackMenu";
@@ -22,6 +23,7 @@ export default function Home() {
       </div>
       <TrackMenu />
       <MiniDeck />
+      <Hold />
     </>
   );
 }

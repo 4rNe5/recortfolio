@@ -1,0 +1,46 @@
+/* 누르고 있는 동안 화면 위에 뜨는 배속 표시 (OLED처럼 검은 판에 픽셀 글자) */
+.pill {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top));
+  left: 50%;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #0b0b0b;
+  color: #f2f2ee;
+  font-family: var(--font-galmuri-mono), var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -8px) scale(0.96);
+  transition:
+    opacity 0.18s ease,
+    transform 0.25s var(--ease-out);
+}
+.pill[data-on] {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+.pill svg {
+  fill: var(--accent);
+}
+.pill[data-on] svg {
+  animation: ff 0.7s steps(2) infinite;
+}
+@keyframes ff {
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill,
+  .pill[data-on] svg {
+    transition: none;
+    animation: none;
+  }
+}

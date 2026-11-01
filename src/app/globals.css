@@ -348,3 +348,11 @@ html.vt-pick * {
     transition: none;
   }
 }
+
+/* 길게 눌러 배속하는 동안(Hold.tsx) 글자 선택·길게 누르기 메뉴를 막는다 */
+html[data-hold],
+html[data-hold] * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}

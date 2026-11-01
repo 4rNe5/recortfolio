@@ -4,6 +4,7 @@
 
 import { tracks } from "@/content/portfolio";
 import * as sound from "./sound";
+import { haptic } from "./haptic";
 
 export const SPEEDS = [0.5, 1, 1.5, 2, 3, 4] as const;
 /** 1x 재생 속도 (px/s) */
@@ -29,6 +30,8 @@ export type Snapshot = {
   theme: Theme;
   message: string | null;
   ready: boolean;
+  /** 모바일에서 화면을 누르고 있는 동안 1.5배속 (Reels식) */
+  boost: boolean;
 };
 
 export type Frame = {
@@ -51,9 +54,12 @@ const INITIAL: Snapshot = {
   theme: "auto",
   message: null,
   ready: false,
+  boost: false,
 };
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+/** 누르고 있는 동안의 재생 속도 */
+export const BOOST_SPEED = 1.5;
 
 /**
  * 임계감쇠 스프링 — 현재 속도(v)를 이어받아 목표(to)로 간다.
@@ -226,7 +232,7 @@ class Tape {
     }
 
     // 테이프 모터: 목표 속도로 서서히 붙고(약 0.7초), 멈추면 관성으로 풀린다(약 0.5초)
-    const goal = this.snap.playing && !this.dragging && !this.spring ? BASE_PX_PER_SEC * SPEEDS[this.snap.speedIndex] : 0;
+    const goal = this.snap.playing && !this.dragging && !this.spring ? BASE_PX_PER_SEC * this.rate() : 0;
     if (this.reduced) this.motor = goal;
     else this.motor += (goal - this.motor) * (1 - Math.exp(-dt * (goal > this.motor ? 3.4 : 5)));
     if (goal === 0 && this.motor < 3) this.motor = 0;
@@ -256,7 +262,7 @@ class Tape {
     this.vel += (sv - this.vel) * 0.5;
     const v = Math.abs(sv);
     this.lastY = y;
-    const run = clamp(this.motor / (BASE_PX_PER_SEC * SPEEDS[this.snap.speedIndex]), 0, 1);
+    const run = clamp(this.motor / (BASE_PX_PER_SEC * this.rate()), 0, 1);
     const base = run * (0.35 + 0.15 * Math.sin(now / 140) * Math.sin(now / 370));
     const want = clamp(Math.max(base, v / 2400), 0, 1);
     this.level += (want - this.level) * (1 - Math.exp(-dt * (want > this.level ? 30 : 5)));
@@ -268,7 +274,7 @@ class Tape {
       if (now - this.lastTickAt > 28 && (this.dragging || driven || this.inertia)) {
         this.lastTickAt = now;
         if (this.snap.sound) sound.tick(this.dragging ? 1 : 0.5);
-        if (this.dragging && navigator.vibrate) navigator.vibrate(4);
+        if (this.dragging) haptic("tick");
       }
     }
 
@@ -368,7 +374,29 @@ class Tape {
 
   private click(pitch = 1) {
     if (this.snap.sound) sound.thump(pitch);
-    if (navigator.vibrate) navigator.vibrate(8);
+    haptic("light");
+  }
+
+  private rate() {
+    return this.snap.boost ? BOOST_SPEED : SPEEDS[this.snap.speedIndex];
+  }
+
+  /** 누르고 있는 동안 1.5배속 — 멈춰 있었으면 그동안만 재생하고, 떼면 원래 상태로 */
+  private holdWasPlaying = false;
+  hold(on: boolean) {
+    if (on === this.snap.boost) return;
+    if (on) {
+      if (window.scrollY >= this.maxScroll() - 2) return;
+      this.holdWasPlaying = this.snap.playing;
+      this.playPos = window.scrollY;
+      this.spring = null;
+      this.set({ boost: true, playing: true });
+      haptic("medium");
+      this.flash(`▶▶ ${BOOST_SPEED}X`, 60_000);
+    } else {
+      if (this.msgTimer) clearTimeout(this.msgTimer);
+      this.set({ boost: false, playing: this.holdWasPlaying && this.snap.playing, message: null });
+    }
   }
 
   goTo(i: number, opts: { silent?: boolean } = {}) {
@@ -523,7 +551,7 @@ class Tape {
     }
     this.set({ rec: true, playing: false });
     if (this.snap.sound) sound.beep();
-    if (navigator.vibrate) navigator.vibrate([10, 40, 10]);
+    haptic("rec");
     this.goTo(contact, { silent: true });
     this.flash("● REC — PRESS AGAIN TO MAIL", 2400);
   }
