@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { installHaptics } from "@/lib/haptic";
 import { BOOST_SPEED, tape } from "@/lib/tape";
 import { useTape } from "@/lib/useTape";
 import s from "./Hold.module.css";
@@ -11,11 +10,9 @@ const SKIP = "a, button, input, textarea, select, label, summary, [role=button],
 const DELAY = 320; // iOS 길게 눌러 선택(약 500ms)보다 먼저
 const SLOP = 10; // 이만큼 움직이면 스크롤로 본다
 
-/** Reels식 누르고 있는 동안 배속 + 사이트 전체 햅틱 */
+/** Reels식 누르고 있는 동안 배속 */
 export default function Hold() {
   const snap = useTape();
-
-  useEffect(() => installHaptics(), []);
 
   useEffect(() => {
     if (!window.matchMedia("(pointer: coarse)").matches) return;

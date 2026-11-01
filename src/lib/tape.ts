@@ -4,7 +4,6 @@
 
 import { tracks } from "@/content/portfolio";
 import * as sound from "./sound";
-import { haptic } from "./haptic";
 
 export const SPEEDS = [0.5, 1, 1.5, 2, 3, 4] as const;
 /** 1x 재생 속도 (px/s) */
@@ -274,7 +273,6 @@ class Tape {
       if (now - this.lastTickAt > 28 && (this.dragging || driven || this.inertia)) {
         this.lastTickAt = now;
         if (this.snap.sound) sound.tick(this.dragging ? 1 : 0.5);
-        if (this.dragging) haptic("tick");
       }
     }
 
@@ -374,7 +372,6 @@ class Tape {
 
   private click(pitch = 1) {
     if (this.snap.sound) sound.thump(pitch);
-    haptic("light");
   }
 
   private rate() {
@@ -391,7 +388,6 @@ class Tape {
       this.playPos = window.scrollY;
       this.spring = null;
       this.set({ boost: true, playing: true });
-      haptic("medium");
       this.flash(`▶▶ ${BOOST_SPEED}X`, 60_000);
     } else {
       if (this.msgTimer) clearTimeout(this.msgTimer);
@@ -551,7 +547,6 @@ class Tape {
     }
     this.set({ rec: true, playing: false });
     if (this.snap.sound) sound.beep();
-    haptic("rec");
     this.goTo(contact, { silent: true });
     this.flash("● REC — PRESS AGAIN TO MAIL", 2400);
   }
