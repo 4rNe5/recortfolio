@@ -433,10 +433,31 @@ class Tape {
     hooks.before?.();
     this.setGlow(n);
     this.pending = n;
+    // 화면 전체(root)를 찍지 않고 화면에 걸친 챕터만 찍는다 — 배경과 광원은 전환 내내 실제로 그려져
+    // 색이 끊기지 않고 바뀐다 (globals.css: html.vt-scene은 root 이름 없음, scene-o*/scene-n*)
+    const tagged: HTMLElement[] = [];
+    const tag = (prefix: string) => {
+      const h = window.innerHeight;
+      const pinned = window.matchMedia("(min-width: 1100px)").matches;
+      const deck = document.getElementById("deck");
+      const els = [...(deck && !pinned ? [deck] : []), ...this.sections];
+      let k = 0;
+      for (const el of els) {
+        const r = el.getBoundingClientRect();
+        if (k < 4 && r.bottom > 0 && r.top < h) {
+          el.style.viewTransitionName = `${prefix}${k++}`;
+          tagged.push(el);
+        }
+      }
+    };
+    const untag = () => tagged.splice(0).forEach((el) => (el.style.viewTransitionName = ""));
+    tag("scene-o");
     let replay: HTMLElement[] = [];
     const vt = doc.startViewTransition(() => {
+      untag();
       hooks.inside?.();
       this.jumpTo(n);
+      tag("scene-n");
       const h = window.innerHeight;
       replay = Array.from(this.sections[n]?.querySelectorAll<HTMLElement>("[data-reveal]") ?? []).filter((el) => {
         const r = el.getBoundingClientRect();
@@ -448,6 +469,7 @@ class Tape {
       .then(() => requestAnimationFrame(() => replay.forEach((el) => el.setAttribute("data-shown", ""))))
       .catch(() => replay.forEach((el) => el.setAttribute("data-shown", "")));
     vt.finished.finally(() => {
+      untag();
       if (token !== this.sceneToken) return;
       root.classList.remove("vt-scene", "vt-fwd", "vt-back");
       if (this.pending === n) this.pending = -1;

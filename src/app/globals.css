@@ -215,12 +215,28 @@ html.vt-scene::view-transition-old(deck),
 html.vt-scene::view-transition-old(minideck) {
   display: none;
 }
+/* 새로 들어오는 챕터 그림이 기기·미니 덱 위에 덮이지 않게 */
+html.vt-scene::view-transition-group(deck),
+html.vt-scene::view-transition-group(minideck) {
+  z-index: 2;
+}
 /* 지금 장면은 진행 방향으로 살짝 밀리며 빠지고, 새 장면은 제자리에서 밝아진다 (요소들은 등장 연출로 떠오름) */
 /* 두 장면이 겹쳐 비치는 시간을 0.06초 이하로 — 겹치면 글자가 이중으로 보인다 */
-html.vt-scene::view-transition-old(root) {
+/* 화면 전체(root)는 찍지 않는다 — 배경·광원(.ambient)은 전환 중에도 실제로 그려진다.
+   화면에 걸친 챕터만 scene-o0~3(이전)·scene-n0~3(새)으로 찍어 넘긴다 (tape.scene) */
+html.vt-scene {
+  view-transition-name: none;
+}
+html.vt-scene::view-transition-old(scene-o0),
+html.vt-scene::view-transition-old(scene-o1),
+html.vt-scene::view-transition-old(scene-o2),
+html.vt-scene::view-transition-old(scene-o3) {
   animation: vt-scene-out 0.2s cubic-bezier(0.4, 0, 1, 1) both;
 }
-html.vt-scene::view-transition-new(root) {
+html.vt-scene::view-transition-new(scene-n0),
+html.vt-scene::view-transition-new(scene-n1),
+html.vt-scene::view-transition-new(scene-n2),
+html.vt-scene::view-transition-new(scene-n3) {
   animation: vt-scene-in 0.32s 0.14s cubic-bezier(0, 0, 0.2, 1) both;
 }
 @keyframes vt-scene-out {
@@ -323,17 +339,6 @@ html.vt-pick * {
   background:
     radial-gradient(ellipse 46% 50% at 75% 22%, oklch(0.72 var(--gc) var(--gh) / calc(0.3 * var(--a))), transparent 70%),
     radial-gradient(ellipse 38% 42% at 15% 88%, oklch(0.72 var(--gc) var(--gh) / calc(0.12 * var(--a))), transparent 70%);
-}
-/* 장면 전환 중에도 빛은 화면에 고정 — 밀려나지 않고 색만 바뀐다 */
-html.vt-scene .ambient {
-  view-transition-name: ambient;
-}
-html.vt-scene::view-transition-group(ambient),
-html.vt-scene::view-transition-new(ambient) {
-  animation: none;
-}
-html.vt-scene::view-transition-old(ambient) {
-  display: none;
 }
 @media (prefers-reduced-motion: reduce) {
   :root {
