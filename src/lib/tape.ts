@@ -339,10 +339,24 @@ class Tape {
     this.setGlow(this.snap.track);
   }
 
-  /** 배경 광원 색 — 무채색 트랙은 빛을 끈다 (globals.css .ambient). 장면 전환은 시작할 때 미리 바꿔 화면과 같이 넘어간다 */
+  /** 배경 광원 색 (globals.css .ambient). 장면 전환은 시작할 때 미리 바꿔 화면과 같이 넘어간다.
+   *  색을 통째로 섞으면 중간이 회색이 되어 빛이 꺼졌다 켜지는 것처럼 보이므로,
+   *  채도(--gc)·색상(--gh)·세기(--ga)를 따로 넘겨 색상환을 따라 돌게 한다. 무채색 트랙은 세기만 0으로. */
+  private glowH = 37.7;
   private setGlow(i: number) {
     const t = tracks[i];
-    if (t) document.documentElement.style.setProperty("--glow", t.color === "#1f1f1f" ? "transparent" : t.color);
+    if (!t) return;
+    const st = document.documentElement.style;
+    if (t.color === "#1f1f1f") return st.setProperty("--ga", "0");
+    const [c, h] = oklchCH(t.color);
+    // 가까운 쪽으로 돈다 (350° → 10°는 20°만)
+    let d = h - (((this.glowH % 360) + 360) % 360);
+    if (d > 180) d -= 360;
+    if (d < -180) d += 360;
+    this.glowH += d;
+    st.setProperty("--gc", c.toFixed(3));
+    st.setProperty("--gh", this.glowH.toFixed(1));
+    st.setProperty("--ga", "1");
   }
 
   // ---- 조작 ----
@@ -669,6 +683,18 @@ class Tape {
         break;
     }
   };
+}
+
+/** #rrggbb → OKLCH의 [채도, 색상(도)] */
+function oklchCH(hex: string): [number, number] {
+  const lin = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  const [r, g, b] = [1, 3, 5].map((k) => lin(parseInt(hex.slice(k, k + 2), 16) / 255));
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+  return [Math.hypot(A, B), ((Math.atan2(B, A) * 180) / Math.PI + 360) % 360];
 }
 
 export const tape = new Tape();
