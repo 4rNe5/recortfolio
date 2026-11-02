@@ -57,7 +57,8 @@
   justify-content: center;
   align-items: center;
   /* 이름 글자 크기 — 글자 설정은 이름에만 (녹음기가 물려받지 않게) */
-  --name: min(11vw, calc((100vw - 2 * var(--gut) - var(--devW)) / 5.9), 210px);
+  /* 두 덩어리 폭 합 ≈ 6.6em (실측) + 녹음기 폭이 한 줄에 들어가게 */
+  --name: min(11vw, calc((100vw - 2 * var(--gut) - var(--devW)) / 6.7), 210px);
 }
 .nameLine {
   font-family: var(--font-display);
@@ -65,8 +66,10 @@
   font-size: var(--name);
   letter-spacing: -0.05em;
   display: block;
+  min-width: max-content;
   overflow: hidden;
-  padding: 0.04em 0.02em 0.12em;
+  /* 좁힌 자간 때문에 마지막 글자가 상자 밖으로 나온다 — 양옆 여유 */
+  padding: 0.04em 0.08em 0.12em;
   line-height: 0.84;
   white-space: nowrap;
 }
