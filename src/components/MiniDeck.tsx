@@ -3,38 +3,22 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as RPE } from "react";
 import { tracks } from "@/content/portfolio";
 import { tape, type Frame } from "@/lib/tape";
+import { useDocked } from "@/lib/dock";
 import { formatTime, useFrame, useTape } from "@/lib/useTape";
 import s from "./MiniDeck.module.css";
 
 const SEG = 14; // OLED 레벨 미터 칸 수 (녹음기와 같음)
 
-/** 모바일·태블릿: 기기가 화면 밖으로 나가면 나타나는 하단 트랜스포트 바 */
+/** 재생바 — 첫 화면의 녹음기가 접혀 들어간 모습. 데스크톱은 왼쪽 아래, 모바일은 아래 전체 폭 */
 export default function MiniDeck() {
   const snap = useTape();
-  const [show, setShow] = useState(false);
+  // 첫 화면의 녹음기가 접혀 들어오면 나타난다 (Motion.tsx)
+  const show = useDocked();
   const wheelRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
   const meterRef = useRef<HTMLSpanElement>(null);
   const lastSeg = useRef(-1);
-
-  useEffect(() => {
-    const deck = document.getElementById("deck");
-    if (!deck) return;
-    const mq = window.matchMedia("(max-width: 1099px)");
-    let visible = true;
-    const update = () => setShow(mq.matches && !visible);
-    const io = new IntersectionObserver(([e]) => {
-      visible = e.isIntersecting;
-      update();
-    });
-    io.observe(deck);
-    mq.addEventListener("change", update);
-    return () => {
-      io.disconnect();
-      mq.removeEventListener("change", update);
-    };
-  }, []);
 
   const onFrame = useCallback((f: Frame) => {
     wheelRef.current?.style.setProperty("--angle", `${f.angle.toFixed(1)}deg`);
@@ -91,6 +75,7 @@ export default function MiniDeck() {
       <div
         ref={wheelRef}
         className={s.wheel}
+        data-bar-wheel
         role="slider"
         aria-label="미니 조그 휠"
         aria-valuemin={0}
@@ -104,7 +89,7 @@ export default function MiniDeck() {
       >
         <i />
       </div>
-      <button className={s.oled} onClick={() => tape.toggleMenu(true)} aria-label={`트랙리스트 열기 — 현재 ${t.title}`}>
+      <button className={s.oled} data-bar-oled onClick={() => tape.toggleMenu(true)} aria-label={`트랙리스트 열기 — 현재 ${t.title}`}>
         <span className={s.row}>
           <span ref={timeRef} className={s.time}>
             0.00.00

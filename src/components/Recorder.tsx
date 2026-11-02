@@ -295,7 +295,7 @@ export default function Recorder() {
           <span className={`${s.mic} ${s.micB}`} aria-hidden />
 
           {/* OLED */}
-          <div className={s.oled} role="status" aria-live="polite" aria-label={`트랙 ${no} ${t.title}`}>
+          <div className={s.oled} data-rec-oled role="status" aria-live="polite" aria-label={`트랙 ${no} ${t.title}`}>
             <div className={s.oledTop}>
               <span className={s.oledTime} ref={timeRef}>
                 0.00.00
@@ -341,6 +341,7 @@ export default function Recorder() {
           {/* 조그 휠 */}
           <div
             className={s.wheel}
+            data-rec-wheel
             role="slider"
             tabIndex={0}
             aria-label="조그 휠 — 트랙 이동"

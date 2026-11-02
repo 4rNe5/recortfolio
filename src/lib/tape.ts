@@ -436,6 +436,8 @@ class Tape {
     window.scrollTo(0, to);
     this.playPos = to;
     this.lastY = to;
+    // 스크롤에 묶인 장면(Motion.tsx)이 새 위치 상태로 바로 맞추도록 — 동기 이벤트
+    window.dispatchEvent(new Event("tape:jump"));
   }
 
   /** 이동 중이면 가고 있는 트랙을 기준으로 — 연타하면 그만큼 더 간다 */
@@ -466,9 +468,8 @@ class Tape {
     const tagged: HTMLElement[] = [];
     const tag = (prefix: string) => {
       const h = window.innerHeight;
-      const pinned = window.matchMedia("(min-width: 1100px)").matches;
       const deck = document.getElementById("deck");
-      const els = [...(deck && !pinned ? [deck] : []), ...this.sections];
+      const els = [...(deck ? [deck] : []), ...this.sections];
       let k = 0;
       for (const el of els) {
         const r = el.getBoundingClientRect();

@@ -1,22 +1,20 @@
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 import { awards, profile, stage, tracks, type ProjectTrack, type Track } from "@/content/portfolio";
-import HeroName from "./HeroName";
 import HeroActions from "./HeroActions";
+import Recorder from "./Recorder";
 import SocialIcon from "./SocialIcon";
 import Waveform from "./Waveform";
 import s from "./Tracks.module.css";
 
-// 모든 챕터는 같은 부품 다섯 개로만 짠다:
-//   Section(틀) · Bar(트랙 머리 + 파형) · Head(제목 + 한 줄 소개) · Rows(이름표·값 줄) · Frame(이미지 틀)
-// 글자 크기·굵기·여백은 globals.css의 토큰만 쓴다.
+// 포트폴리오 = 녹음기에서 재생되는 앨범 한 장. 챕터 하나가 트랙 하나다.
+// 프로젝트 트랙은 모두 같은 장면 순서: 트랙 카드 → 정체 → 핵심 수치 → 목업 → 한 일 → 스택·역할·링크
+// 마지막 수상·무대·연락은 "Side B" — 본문과 다른 판(반전 색)에 정리한다.
+// 움직임은 Motion.tsx가 data-* 표시를 보고 붙인다 (이 파일은 서버에서 그린다).
 
 const num = (i: number) => String(i).padStart(2, "0");
-/** 처음 화면에 들어올 때 한 번 떠오른다 (Boot의 IntersectionObserver). ms: 같은 묶음 안에서의 시차 */
-const rv = (kind: "up" | "title" | "media" = "up", ms = 0) =>
-  ({ "data-reveal": kind, style: { ["--rd" as string]: `${ms}ms` } as CSSProperties }) as const;
-
-/* ---------- 부품 ---------- */
+/** 처음 화면에 들어올 때 한 번 떠오른다 (Boot의 IntersectionObserver) */
+const rv = (ms = 0) => ({ "data-reveal": "up", style: { ["--rd" as string]: `${ms}ms` } as CSSProperties }) as const;
 
 function Section({ t, i, className, children }: { t: Track; i: number; className?: string; children: ReactNode }) {
   return (
@@ -32,204 +30,266 @@ function Section({ t, i, className, children }: { t: Track; i: number; className
   );
 }
 
-/** 챕터 머리: 트랙 번호 줄 + 파형. 모바일에선 챕터를 읽는 동안 화면 위에 붙어 있다. */
-function Bar({ i, right, title }: { i: number; right: string; title: string }) {
+/* ---------- 첫 화면: 거대한 이름 사이에 녹음기 — 스크롤·재생하면 녹음기가 재생바로 접혀 들어간다 ---------- */
+function Hero() {
+  // 글자 하나씩 떠오른다 (--d: 등장 시차)
+  const split = (word: string, offset: number) =>
+    Array.from(word).map((ch, i) => (
+      <span key={i} style={{ ["--d" as string]: `${(offset + i) * 28}ms` }}>
+        {ch === " " ? "\u00a0" : ch}
+      </span>
+    ));
   return (
-    <>
-      <span className={s.sentinel} data-sentinel aria-hidden />
-      <div className={s.bar}>
-        <header className={s.head}>
-          <span className={s.no}>Track {num(i)}</span>
-          <span className={s.stuckTitle} aria-hidden>
-            {title}
-          </span>
-          <span className={s.rule} />
-          <span className={s.right}>{right}</span>
-        </header>
-        <Waveform seed={tracks[i].id} />
+    <div className={s.hero} data-hero>
+      <h1 className={s.srOnly}>
+        Park Jun Hyeon — {profile.nameKo}, 프론트엔드 개발자
+      </h1>
+      <div className={s.heroStage}>
+        <span className={s.nameLine} data-hero-name="left" aria-hidden>
+          {split("Park", 0)}
+        </span>
+        <div className={s.heroSlot} data-hero-slot>
+          <div className={s.heroDevice} id="deck" data-hero-device>
+            <Recorder />
+          </div>
+        </div>
+        <span className={s.nameLine} data-hero-name="right" aria-hidden>
+          {split("Jun Hyeon", 4)}
+        </span>
       </div>
-    </>
+      <div className={s.heroCopy} data-hero-text>
+        <p className={s.subtitle} aria-hidden>
+          {profile.nameKo}, 프론트엔드 개발자
+        </p>
+        <p className={s.heroLede}>{profile.lede}</p>
+        <HeroActions />
+      </div>
+      <span className={s.scrollCue} data-hero-text aria-hidden>
+        스크롤하거나 ▶ 를 눌러 재생
+      </span>
+    </div>
   );
 }
 
-/** 제목 + 한 줄 소개 — 모든 챕터 공통. href가 있으면 제목이 링크 */
-function Head({ title, lede, icon, href }: { title: string; lede: string; icon?: { i: number; src: string; logo?: boolean }; href?: string }) {
+/* ---------- 트랙 카드: 트랙이 바뀌는 순간 — 번호, 거대한 이름, 파형(재생 위치) ---------- */
+function TitleCard({ t, i, meta }: { t: Track; i: number; meta: string }) {
   return (
-    <div className={s.headBlock}>
-      <div className={s.titleRow}>
-        {icon && (
-          <span className={s.icon} data-icon={icon.i} data-logo={icon.logo || undefined}>
-            <Image src={icon.src} alt="" width={96} height={96} loading="eager" />
-          </span>
-        )}
-        <h2 className={s.title} data-scramble {...rv("title")}>
-          {href ? (
-            <a className={s.titleLink} href={href}>
-              {title}
-            </a>
-          ) : (
-            <span>{title}</span>
-          )}
-        </h2>
+    <header className={s.card} data-card>
+      <p className={s.cardMeta} data-card-meta>
+        <span>Track {num(i)}</span>
+        <span>{meta}</span>
+      </p>
+      <h2 className={s.cardTitle} data-card-title data-scramble style={{ ["--n" as string]: t.display.length } as CSSProperties}>
+        <span>{t.display}</span>
+      </h2>
+      <div className={s.cardWave} data-card-wave>
+        <Waveform seed={t.id} count={128} />
       </div>
-      <p className={s.lede} {...rv("up", 80)}>
-        {lede}
+    </header>
+  );
+}
+
+/* ---------- 프로젝트 ---------- */
+function Identity({ t }: { t: ProjectTrack }) {
+  return (
+    <div className={s.ident} data-ident>
+      <span className={s.appIcon} data-logo={t.id === "sfoodgo" || undefined} data-ident-item>
+        <Image src={t.icon} alt="" width={240} height={240} />
+      </span>
+      <h3 className={s.identTitle} data-ident-item>
+        {t.title}
+      </h3>
+      <p className={s.identLede} data-ident-item>
+        {t.tagline}
+      </p>
+      <p className={s.identRole} data-ident-item>
+        {t.role} · {t.period}
       </p>
     </div>
   );
 }
 
-type Row = { key: string; label: ReactNode; value: ReactNode; aside?: ReactNode; href?: string; top?: boolean };
-/** 이름표·값 줄 — 이력, 프로젝트 정보, 한 일, 수상, 채널이 모두 이 한 가지 줄을 쓴다 */
-/** accent: 이름표를 트랙 색으로 (프로젝트의 "한 일" 번호에만 쓴다) */
-function Rows({ rows, lw = "96px", size = "body", accent, ...rest }: { rows: Row[]; lw?: string; size?: "body" | "lead"; accent?: boolean; "aria-label"?: string }) {
+function KeyFacts({ t }: { t: ProjectTrack }) {
   return (
-    <ul className={s.rows} data-size={size} data-accent={accent || undefined} style={{ ["--lw" as string]: lw } as CSSProperties} {...rest}>
-      {rows.map((r, k) => {
-        const inner = (
-          <>
-            <span className={s.rowLabel}>{r.label}</span>
-            <span className={s.rowValue}>{r.value}</span>
-            {r.aside !== undefined && <span className={s.rowAside}>{r.aside}</span>}
-          </>
-        );
-        return (
-          <li key={r.key} data-top={r.top || undefined} {...rv("up", 120 + Math.min(k, 5) * 50)}>
-            {r.href ? (
-              <a className={s.row} href={r.href} target="_blank" rel="noreferrer">
-                {inner}
-              </a>
-            ) : (
-              <div className={s.row}>{inner}</div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    <dl className={s.facts} style={{ ["--n" as string]: t.facts.length } as CSSProperties} data-facts>
+      {t.facts.map((f) => (
+        <div key={f.v + f.l} data-fact>
+          <dt data-count aria-label={f.v}>
+            {f.v}
+          </dt>
+          <dd>{f.l}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
-/** 이미지 틀 — 비율 하나(16:10), 뒤는 트랙 색 판 */
-function Frame({ t }: { t: ProjectTrack }) {
-  if (!t.media) return null;
+function Showcase({ t }: { t: ProjectTrack }) {
+  const m = t.media;
   return (
-    <figure className={s.frame} data-kind={t.media.kind} {...rv("media", 220)}>
-      {t.media.kind === "mockup" ? (
-        <Image src={t.media.shot.src} alt={t.media.shot.alt} width={t.media.shot.width} height={t.media.shot.height} sizes="(max-width: 1100px) 92vw, 46vw" />
-      ) : (
-        t.media.shots.map((m, k) => (
-          <Image key={m.src} src={m.src} alt={m.alt} width={m.width} height={m.height} sizes="(max-width: 1100px) 30vw, 14vw" style={{ ["--k" as string]: k }} />
-        ))
-      )}
+    <figure
+      className={s.show}
+      data-kind={m?.kind ?? "icon"}
+      data-show
+      style={{ ["--n" as string]: t.display.length, ["--cols" as string]: m?.kind === "screens" ? m.shots.length : 1 } as CSSProperties}
+    >
+      <div className={s.showPanel} data-show-panel aria-hidden />
+      <span className={s.showWord} data-show-word aria-hidden>
+        {t.display}
+      </span>
+      <div className={s.showMedia} data-show-media>
+        {!m ? (
+          <span className={s.showIcon}>
+            <Image src={t.icon} alt={`${t.title} 아이콘`} width={480} height={480} />
+          </span>
+        ) : m.kind === "mockup" ? (
+          <Image src={m.shot.src} alt={m.shot.alt} width={m.shot.width} height={m.shot.height} sizes="(max-width: 1099px) 92vw, 60vw" />
+        ) : (
+          m.shots.map((sh, k) => (
+            <Image key={sh.src} src={sh.src} alt={sh.alt} width={sh.width} height={sh.height} sizes="(max-width: 1099px) 40vw, 18vw" data-shot={k} style={{ ["--k" as string]: k } as CSSProperties} />
+          ))
+        )}
+      </div>
     </figure>
   );
 }
 
-const Link = ({ href, children }: { href: string; children: ReactNode }) => (
-  <a className={s.link} href={href} target="_blank" rel="noreferrer">
-    {children}
-  </a>
-);
-
-/* ---------- 챕터 ---------- */
-
-function Intro({ i }: { i: number }) {
-  const t = tracks[i];
+function Did({ t }: { t: ProjectTrack }) {
   return (
-    <Section t={t} i={i} className={s.intro}>
-      <div className={s.hero}>
-        <HeroName first="Park" rest="Jun Hyeon" />
-        <p className={s.subtitle}>{profile.nameKo}, 프론트엔드 개발자</p>
-        <p className={s.heroLede}>{profile.lede}</p>
-        <HeroActions />
+    <ol className={s.did}>
+      {t.did.map((d, k) => (
+        <li key={d} data-did-item>
+          <span className={s.didNo}>{num(k + 1)}</span>
+          <p>{d}</p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function Meta({ t }: { t: ProjectTrack }) {
+  return (
+    <div className={s.meta} data-meta>
+      <div data-meta-item>
+        <h4>역할</h4>
+        <p>{t.role}</p>
       </div>
-
-      <Bar i={i} right="소개" title="Park Jun Hyeon" />
-
-      <ul className={s.principles}>
-        {profile.principles.map((p, k) => (
-          <li key={p.t} {...rv("up", k * 80)}>
-            <h2>{p.t}</h2>
-            <p>{p.d}</p>
-          </li>
-        ))}
-      </ul>
-
-      <div className={s.credits}>
-        <figure className={s.photo} {...rv("media", 120)}>
-          <Image src={profile.photo} alt={`${profile.nameKo} 프로필 사진`} width={413} height={531} priority />
-        </figure>
-        <Rows rows={profile.credits.map((c) => ({ key: c.k, label: c.k, value: c.v }))} />
+      <div data-meta-item>
+        <h4>기술</h4>
+        <ul className={s.chips}>
+          {t.stack.map((x) => (
+            <li key={x}>{x}</li>
+          ))}
+        </ul>
       </div>
-    </Section>
+      <div data-meta-item>
+        <h4>링크</h4>
+        <p className={s.metaLinks}>
+          {t.links.map((l) => (
+            <a key={l.href} className={s.pill} href={l.href} target="_blank" rel="noreferrer">
+              {l.label} <span aria-hidden>↗</span>
+            </a>
+          ))}
+        </p>
+        {t.notice && <p className={s.notice}>{t.notice}</p>}
+      </div>
+    </div>
   );
 }
 
 function Project({ t, i }: { t: ProjectTrack; i: number }) {
   return (
-    <Section t={t} i={i}>
-      <Bar i={i} right={t.period} title={t.title} />
-      <Head title={t.title} lede={t.tagline} icon={{ i, src: t.icon, logo: t.id === "sfoodgo" }} />
+    <Section t={t} i={i} className={s.project}>
+      <TitleCard t={t} i={i} meta={t.period} />
+      <Identity t={t} />
+      <KeyFacts t={t} />
+      <Showcase t={t} />
+      <Did t={t} />
+      <Meta t={t} />
+    </Section>
+  );
+}
 
-      <dl className={s.facts} style={{ ["--n" as string]: t.facts.length }}>
-        {t.facts.map((f, k) => (
-          <div key={f.v + f.l} {...rv("up", 160 + k * 70)}>
-            <dt>{f.v}</dt>
-            <dd>{f.l}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <Frame t={t} />
-
-      <div className={s.body}>
-        <Rows accent lw="32px" rows={t.did.map((d, k) => ({ key: d, label: num(k + 1), value: d }))} />
-        <Rows
-          lw="56px"
-          rows={[
-            { key: "role", label: "역할", value: t.role },
-            { key: "stack", label: "기술", value: t.stack.join(", ") },
-            {
-              key: "links",
-              label: "링크",
-              value: (
-                <span className={s.links}>
-                  {t.links.map((l) => (
-                    <Link key={l.href} href={l.href}>
-                      {l.label}
-                    </Link>
-                  ))}
-                  {t.notice && <span className={s.notice}>{t.notice}</span>}
-                </span>
-              ),
-            },
-          ]}
-        />
+/* ---------- 소개 ---------- */
+function Intro({ i }: { i: number }) {
+  const t = tracks[i];
+  return (
+    <Section t={t} i={i} className={s.intro}>
+      <Hero />
+      <div className={s.introBody}>
+        <p className={s.eyebrow} {...rv()}>
+          Track 00 — 소개
+        </p>
+        <span className={s.introWave} aria-hidden>
+          <Waveform seed={t.id} count={128} />
+        </span>
+        <ul className={s.principles}>
+          {profile.principles.map((p, k) => (
+            <li key={p.t} {...rv(k * 90)}>
+              <span className={s.principleNo}>{num(k + 1)}</span>
+              <h3>{p.t}</h3>
+              <p>{p.d}</p>
+            </li>
+          ))}
+        </ul>
+        <div className={s.credits}>
+          <figure className={s.photo} {...rv(80)}>
+            <Image src={profile.photo} alt={`${profile.nameKo} 프로필 사진`} width={413} height={531} />
+          </figure>
+          <dl className={s.creditList}>
+            {profile.credits.map((c, k) => (
+              <div key={c.k} {...rv(120 + k * 50)}>
+                <dt>{c.k}</dt>
+                <dd>{c.v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </div>
     </Section>
+  );
+}
+
+/* ---------- Side B: 수상 · 무대 · 연락 ---------- */
+function SideHead({ i, title, note }: { i: number; title: string; note: string }) {
+  const b = i - tracks.findIndex((x) => x.kind === "awards") + 1;
+  return (
+    <header className={s.sideHead}>
+      <p className={s.sideNo} {...rv()}>
+        B{b} · Track {num(i)}
+      </p>
+      <h2 className={s.sideTitle} data-scramble {...rv(60)}>
+        <span>{title}</span>
+      </h2>
+      <p className={s.sideNote} {...rv(120)}>
+        {note}
+      </p>
+    </header>
   );
 }
 
 function Awards({ i }: { i: number }) {
   const t = tracks[i];
   return (
-    <Section t={t} i={i}>
-      <Bar i={i} right="2023 – 2024" title="Awards" />
-      <Head title="Awards" lede="해커톤과 공모전에서 아홉 번 수상했고, 그중 세 번은 1등이었습니다." />
-      <Rows
-        rows={awards.map((a) => ({
-          key: a.event,
-          label: a.date,
-          value: (
-            <>
-              {a.event}
-              <small className={s.sub}>{a.work}</small>
-            </>
-          ),
-          aside: a.prize,
-          top: a.top,
-        }))}
-      />
+    <Section t={t} i={i} className={s.side}>
+      <div className={s.sideIntro} aria-hidden data-side-intro>
+        <span>Side</span>
+        <span>B</span>
+      </div>
+      <SideHead i={i} title="Awards" note="해커톤과 공모전에서 아홉 번 수상했고, 그중 세 번은 1등이었습니다." />
+      <ol className={s.chart}>
+        {awards.map((a, k) => (
+          <li key={a.event} data-top={a.top || undefined} {...rv(Math.min(k, 6) * 40)}>
+            <span className={s.chartRank}>{num(k + 1)}</span>
+            <span className={s.chartMain}>
+              <strong>{a.event}</strong>
+              <small>{a.work}</small>
+            </span>
+            <span className={s.chartPrize}>{a.prize}</span>
+            <span className={s.chartDate}>{a.date}</span>
+          </li>
+        ))}
+      </ol>
     </Section>
   );
 }
@@ -237,30 +297,39 @@ function Awards({ i }: { i: number }) {
 function Stage({ i }: { i: number }) {
   const t = tracks[i];
   return (
-    <Section t={t} i={i}>
-      <Bar i={i} right="발표와 전시" title="On stage" />
-      <Head title="On stage" lede="만든 것을 직접 설명하는 자리에 자주 섰습니다." />
-      <ul className={s.cards}>
-        {stage.map((a, k) => (
-          <li key={a.title} className={s.card} {...rv("up", 140 + (k % 2) * 90)}>
-            {a.photo && (
-              <div className={s.cardPhoto}>
-                <Image
-                  src={a.photo}
-                  alt=""
-                  width={a.photo.includes("counterspell") ? 600 : 1200}
-                  height={a.photo.includes("counterspell") ? 235 : 751}
-                  sizes="(max-width: 1100px) 92vw, 28vw"
-                />
-              </div>
-            )}
-            <span className={s.rowLabel}>{a.date}</span>
-            <h3>{a.title}</h3>
-            <p>{a.desc}</p>
-            {a.link && <Link href={a.link.href}>{a.link.label}</Link>}
-          </li>
-        ))}
-      </ul>
+    <Section t={t} i={i} className={s.side}>
+      <SideHead i={i} title="On stage" note="만든 것을 직접 설명하는 자리에 자주 섰습니다." />
+      <div className={s.reel} data-reel>
+        <ul className={s.reelTrack} data-reel-track>
+          {stage.map((a) => (
+            <li key={a.title} className={s.reelCard}>
+              {a.photo ? (
+                <div className={s.reelPhoto}>
+                  <Image
+                    src={a.photo}
+                    alt=""
+                    width={a.photo.includes("counterspell") ? 600 : 1200}
+                    height={a.photo.includes("counterspell") ? 235 : 751}
+                    sizes="(max-width: 1099px) 80vw, 34vw"
+                  />
+                </div>
+              ) : (
+                <div className={s.reelPhoto} data-empty aria-hidden>
+                  <span>{a.title}</span>
+                </div>
+              )}
+              <span className={s.reelDate}>{a.date}</span>
+              <h3>{a.title}</h3>
+              <p>{a.desc}</p>
+              {a.link && (
+                <a className={s.reelLink} href={a.link.href} target="_blank" rel="noreferrer">
+                  {a.link.label} <span aria-hidden>↗</span>
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     </Section>
   );
 }
@@ -268,29 +337,31 @@ function Stage({ i }: { i: number }) {
 function Contact({ i }: { i: number }) {
   const t = tracks[i];
   return (
-    <Section t={t} i={i} className={s.contact}>
-      <Bar i={i} right="Side A 끝" title="연락하기" />
-      <Head title={profile.email} href={`mailto:${profile.email}`} lede="다음 트랙을 같이 만들 분을 기다립니다." />
-      <Rows
-        size="lead"
-        lw="40px"
-        aria-label="다른 채널"
-        rows={profile.socials.map((x) => ({
-          key: x.name,
-          href: x.href,
-          label: <SocialIcon name={x.name} className={s.socialIcon} />,
-          value: x.name,
-          aside: (
-            <>
-              {x.handle}
-              <span className={s.jack} aria-hidden />
-            </>
-          ),
-        }))}
-      />
+    <Section t={t} i={i} className={`${s.side} ${s.contact}`}>
+      <SideHead i={i} title="연락하기" note="다음 트랙을 같이 만들 분을 기다립니다." />
+      <a className={s.mail} href={`mailto:${profile.email}`} {...rv(80)}>
+        <span className={s.recDot} aria-hidden />
+        {profile.email}
+      </a>
+      <ul className={s.channels} aria-label="다른 채널">
+        {profile.socials.map((x, k) => (
+          <li key={x.name} {...rv(140 + k * 60)}>
+            <a href={x.href} target="_blank" rel="noreferrer">
+              <SocialIcon name={x.name} className={s.socialIcon} />
+              <span className={s.chName}>{x.name}</span>
+              <span className={s.chHandle}>{x.handle}</span>
+              <span className={s.chArrow} aria-hidden>
+                ↗
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
       <footer className={s.footer}>
         <span>© 2026 {profile.nameEn}</span>
-        <Link href="https://github.com/4rNe5/recortfolio">이 사이트의 소스</Link>
+        <a href="https://github.com/4rNe5/recortfolio" target="_blank" rel="noreferrer">
+          이 사이트의 소스
+        </a>
         <span>휴대용 필드 레코더에서 영감을 받아 만들었습니다.</span>
       </footer>
     </Section>
@@ -298,22 +369,27 @@ function Contact({ i }: { i: number }) {
 }
 
 export default function Tracks() {
+  const sideStart = tracks.findIndex((t) => t.kind === "awards");
+  const render = (t: Track, i: number) => {
+    switch (t.kind) {
+      case "intro":
+        return <Intro key={t.id} i={i} />;
+      case "project":
+        return <Project key={t.id} t={t} i={i} />;
+      case "awards":
+        return <Awards key={t.id} i={i} />;
+      case "stage":
+        return <Stage key={t.id} i={i} />;
+      case "contact":
+        return <Contact key={t.id} i={i} />;
+    }
+  };
   return (
     <>
-      {tracks.map((t, i) => {
-        switch (t.kind) {
-          case "intro":
-            return <Intro key={t.id} i={i} />;
-          case "project":
-            return <Project key={t.id} t={t} i={i} />;
-          case "awards":
-            return <Awards key={t.id} i={i} />;
-          case "stage":
-            return <Stage key={t.id} i={i} />;
-          case "contact":
-            return <Contact key={t.id} i={i} />;
-        }
-      })}
+      {tracks.slice(0, sideStart).map((t, k) => render(t, k))}
+      <div className={s.sideB} data-sideb>
+        {tracks.slice(sideStart).map((t, k) => render(t, sideStart + k))}
+      </div>
     </>
   );
 }

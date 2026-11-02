@@ -198,28 +198,18 @@ html.vt-fwd {
 html.vt-back {
   --vt-dir: -1;
 }
-/* 왼쪽 기기(데스크톱)와 하단 미니 덱(모바일)은 장면 밖 — 움직이지 않고 바로 새 상태.
-   모바일의 기기는 페이지와 함께 흐르므로 장면에 포함한다. */
-@media (min-width: 1100px) {
-  html.vt-scene [data-deck] {
-    view-transition-name: deck;
-  }
-}
+/* 재생바(미니 덱)는 장면 밖 — 움직이지 않고 바로 새 상태 */
 html.vt-scene [data-minideck][data-show] {
   view-transition-name: minideck;
 }
-html.vt-scene::view-transition-group(deck),
-html.vt-scene::view-transition-new(deck),
 html.vt-scene::view-transition-group(minideck),
 html.vt-scene::view-transition-new(minideck) {
   animation: none;
 }
-html.vt-scene::view-transition-old(deck),
 html.vt-scene::view-transition-old(minideck) {
   display: none;
 }
 /* 새로 들어오는 챕터 그림이 기기·미니 덱 위에 덮이지 않게 */
-html.vt-scene::view-transition-group(deck),
 html.vt-scene::view-transition-group(minideck) {
   z-index: 2;
 }
