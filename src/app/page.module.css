@@ -1,47 +1,5 @@
-.shell {
-  display: grid;
-  grid-template-columns: minmax(360px, 40vw) minmax(0, 1fr);
-  min-height: 100vh;
-}
-
-.deck {
+/* 앨범 한 장: 첫 화면 → Side A → Side B. 폭·정렬은 각 장면(Tracks.module.css)이 정한다 */
+.album {
   position: relative;
-}
-.deckInner {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px clamp(24px, 3.5vw, 64px);
-}
-.deckInner > * {
-  /* 화면 높이에 맞춰 기기 크기를 정한다 (기기 853:1370 + 힌트 영역) */
-  width: min(100%, 470px, calc((100svh - 140px) * 0.6226));
-}
-
-.notes {
-  padding: 0 clamp(24px, 5vw, 96px) 0 clamp(12px, 2vw, 32px);
-  max-width: 1040px;
-}
-
-@media (max-width: 1099px) {
-  .shell {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .deckInner {
-    position: relative;
-    height: auto;
-    min-height: 0;
-    padding: 40px 20px 8px;
-  }
-  .deckInner > * {
-    width: min(78vw, 400px);
-  }
-  .notes {
-    padding: 0 20px 120px;
-    max-width: none;
-  }
+  overflow-x: clip;
 }

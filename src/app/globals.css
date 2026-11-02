@@ -198,28 +198,18 @@ html.vt-fwd {
 html.vt-back {
   --vt-dir: -1;
 }
-/* 왼쪽 기기(데스크톱)와 하단 미니 덱(모바일)은 장면 밖 — 움직이지 않고 바로 새 상태.
-   모바일의 기기는 페이지와 함께 흐르므로 장면에 포함한다. */
-@media (min-width: 1100px) {
-  html.vt-scene [data-deck] {
-    view-transition-name: deck;
-  }
-}
+/* 재생바(미니 덱)는 장면 밖 — 움직이지 않고 바로 새 상태 */
 html.vt-scene [data-minideck][data-show] {
   view-transition-name: minideck;
 }
-html.vt-scene::view-transition-group(deck),
-html.vt-scene::view-transition-new(deck),
 html.vt-scene::view-transition-group(minideck),
 html.vt-scene::view-transition-new(minideck) {
   animation: none;
 }
-html.vt-scene::view-transition-old(deck),
 html.vt-scene::view-transition-old(minideck) {
   display: none;
 }
 /* 새로 들어오는 챕터 그림이 기기·미니 덱 위에 덮이지 않게 */
-html.vt-scene::view-transition-group(deck),
 html.vt-scene::view-transition-group(minideck) {
   z-index: 2;
 }
@@ -330,13 +320,13 @@ html.vt-pick * {
   inset: -10%;
   z-index: -1;
   pointer-events: none;
-  filter: blur(50px);
+  /* 흐림 필터 없이 넓은 그러데이션으로만 부드럽게 — 필터는 위의 시각화 캔버스가 바뀔 때마다 다시 계산돼 무겁다 */
 }
 .ambient[data-glow="c"] {
   background:
-    radial-gradient(circle at 32% 25%, var(--g1), transparent 32%),
-    radial-gradient(circle at 80% 58%, var(--g2), transparent 34%),
-    radial-gradient(circle at 50% 100%, var(--g3), transparent 36%);
+    radial-gradient(circle at 32% 25%, var(--g1), color-mix(in oklab, var(--g1) 45%, transparent) 18%, transparent 46%),
+    radial-gradient(circle at 80% 58%, var(--g2), color-mix(in oklab, var(--g2) 45%, transparent) 20%, transparent 48%),
+    radial-gradient(circle at 50% 100%, var(--g3), color-mix(in oklab, var(--g3) 45%, transparent) 22%, transparent 50%);
 }
 .ambient[data-glow="a"] {
   background:
@@ -355,4 +345,16 @@ html[data-hold] * {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
+}
+
+/* 음악 시각화 캔버스 (Viz.tsx) — 광원 위, 본문 뒤 */
+.viz {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  /* 자기 층 — 매 프레임 그려도 아래 광원·본문을 다시 칠하지 않게 */
+  will-change: transform;
 }
