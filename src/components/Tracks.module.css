@@ -9,7 +9,7 @@
   --col: min(1080px, calc(100vw - 2 * var(--gut)));
   --gut: clamp(20px, 5vw, 72px);
   --t-hero: clamp(64px, 11.5vw, 220px);
-  --t-card: min(19vw, calc(150vw / var(--n, 8)), 300px);
+  --t-card: min(19vw, calc(124vw / var(--n, 8)), 300px);
   --t-ident: clamp(44px, 6vw, 104px);
   --t-fact: clamp(48px, 6.4vw, 112px);
   --t-did: clamp(21px, 2.3vw, 34px);
